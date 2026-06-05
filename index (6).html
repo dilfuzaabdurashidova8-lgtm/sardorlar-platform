@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+    <title>Toshkent Sardorlari · v5.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDZFinuAtFCQBk_UmFalKDz73iNYllYeyw",
+            authDomain: "toshkent-sardorlari.firebaseapp.com",
+            projectId: "toshkent-sardorlari",
+            storageBucket: "toshkent-sardorlari.firebasestorage.app",
+            messagingSenderId: "304399739396",
+            appId: "1:304399739396:web:b399f2c6f1b1355ef82351",
+            measurementId: "G-SH2JXWDVF4"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+    </script>
+    <style>
+        :root {
+            --primary: #6750A4;
+            --primary-light: #EADDFF;
+            --primary-dark: #21005D;
+            --accent: #FFD22D;
+            --bg: #F6F5F8;
+            --card: #FFFFFF;
+            --text-main: #1C1B1F;
+            --text-sub: #49454F;
+            --border: #CAC4D0;
+            --success: #10B981;
+            --danger: #B3261E;
+            --warning: #F59E0B;
+            --shadow: 0 4px 20px rgba(0,0,0,0.08);
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --sidebar-w: 260px;
+            --topbar-h: 60px;
+            --bottom-nav-h: 64px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text-main); overflow: hidden; height: 100vh; }
+
+        /* ═══════════════════════════════════════
+           SPLASH SCREEN
+        ═══════════════════════════════════════ */
+        #splash-screen {
+            position: fixed; inset: 0; background: var(--primary-dark);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9999; transition: opacity 0.6s ease;
+        }
+        .splash-logo {
+            width: 110px; height: 110px; background: white; border-radius: 32px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 48px; color: var(--primary); margin-bottom: 20px;
+            animation: pulse 2s infinite ease-in-out;
+        }
+        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+        .splash-text { color: white; font-weight: 800; font-size: 16px; text-align: center; line-height: 1.5; }
+        .splash-ver { color: rgba(255,255,255,0.5); font-size: 11px; margin-top: 8px; letter-spacing: 2px; }
+
+        /* ═══════════════════════════════════════
+           AUTH PAGE
+        ═══════════════════════════════════════ */
+        .auth-container {
+            display: flex; align-items: center; justify-content: center; min-height: 100vh;
+            background: linear-gradient(135deg, #21005D 0%, #4F378B 100%); padding: 16px;
+        }
+        .auth-card {
+            background: rgba(255,255,255,0.98); padding: 32px; border-radius: var(--radius-lg);
+            width: 100%; max-width: 440px; box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+        }
+        .demo-accounts {
+            margin-top: 20px; padding: 12px; background: #F3F0F7; border-radius: var(--radius-sm);
+            max-height: 180px; overflow-y: auto;
+        }
+        .demo-item {
+            display: flex; justify-content: space-between; align-items: center; padding: 9px 12px;
+            background: white; border-radius: 8px; margin-bottom: 6px; cursor: pointer;
+            transition: 0.2s; font-size: 12px; border: 1px solid transparent;
+        }
+        .demo-item:hover { background: var(--primary-light); border-color: var(--primary); }
+
+        /* ═══════════════════════════════════════
+           DESKTOP SHELL
+        ═══════════════════════════════════════ */
+        .shell { display: none; height: 100vh; width: 100%; }
+
+        /* Desktop: sidebar + content */
+        @media (min-width: 769px) {
+            .shell { display: none; flex-direction: row; }
+            .shell.active { display: flex; }
+            .sidebar { display: flex !important; }
+            .bottom-nav { display: none !important; }
+            .mob-header { display: none !important; }
+            .content { display: flex; flex-direction: column; }
+        }
+
+        /* Mobile: bottom nav */
+        @media (max-width: 768px) {
+            .shell.active { display: flex; flex-direction: column; }
+            .sidebar { display: none !important; }
+            .topbar { display: none !important; }
+            .mob-header { display: flex !important; }
+            .bottom-nav { display: flex !important; }
+            body { overflow: hidden; }
+            .scroller { padding: 16px; padding-bottom: calc(var(--bottom-nav-h) + 16px); }
+        }
+
+        /* ═══════════════════════════════════════
+           SIDEBAR (desktop)
+        ═══════════════════════════════════════ */
+        .sidebar {
+            width: var(--sidebar-w); background: var(--primary-dark); color: white;
+            display: flex; flex-direction: column; padding: 18px; flex-shrink: 0; overflow-y: auto;
+        }
+        .sidebar-brand { padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 18px; }
+        .sidebar-brand h2 { font-size: 14px; font-weight: 800; line-height: 1.4; }
+        .sidebar-ver { font-size: 9px; opacity: 0.4; margin-top: 4px; letter-spacing: 1.5px; text-transform: uppercase; }
+        .nav-item {
+            display: flex; align-items: center; gap: 11px; padding: 11px 13px;
+            border-radius: var(--radius-sm); color: rgba(234,221,255,0.8);
+            cursor: pointer; transition: var(--transition); margin-bottom: 3px; font-size: 13px;
+        }
+        .nav-item:hover, .nav-item.active { background: var(--primary); color: white; }
+        .nav-label { font-size: 9px; text-transform: uppercase; opacity: 0.4; margin: 12px 0 4px 10px; letter-spacing: 1.5px; }
+
+        /* ═══════════════════════════════════════
+           MOBILE HEADER
+        ═══════════════════════════════════════ */
+        .mob-header {
+            display: none; align-items: center; justify-content: space-between;
+            height: var(--topbar-h); padding: 0 16px;
+            background: var(--primary-dark); color: white; flex-shrink: 0;
+        }
+        .mob-header h3 { font-size: 14px; font-weight: 800; }
+        .mob-header .mob-user { font-size: 11px; background: rgba(255,255,255,0.15); padding: 4px 10px; border-radius: 20px; }
+
+        /* ═══════════════════════════════════════
+           BOTTOM NAV (mobile)
+        ═══════════════════════════════════════ */
+        .bottom-nav {
+            display: none; position: fixed; bottom: 0; left: 0; right: 0;
+            height: var(--bottom-nav-h); background: white;
+            border-top: 1px solid var(--border); z-index: 1000;
+            align-items: center; justify-content: space-around; padding: 0 4px;
+        }
+        .bn-item {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            flex: 1; height: 100%; gap: 3px; cursor: pointer; color: var(--text-sub);
+            transition: 0.2s; padding: 6px 2px; border-radius: 12px; font-size: 9px; font-weight: 700;
+        }
+        .bn-item i { font-size: 20px; }
+        .bn-item.active { color: var(--primary); }
+        .bn-item span { text-align: center; line-height: 1.2; }
+
+        /* ═══════════════════════════════════════
+           TOPBAR (desktop)
+        ═══════════════════════════════════════ */
+        .content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar {
+            height: var(--topbar-h); background: white; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 24px; flex-shrink: 0;
+        }
+        .scroller { flex: 1; overflow-y: auto; padding: 22px; }
+
+        /* ═══════════════════════════════════════
+           UI COMPONENTS
+        ═══════════════════════════════════════ */
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 20px; }
+        .stat-card {
+            background: white; padding: 18px; border-radius: var(--radius-md);
+            box-shadow: var(--shadow); border-left: 4px solid var(--primary);
+        }
+        .stat-card h4 { font-size: 10px; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-card .val { font-size: 26px; font-weight: 800; margin-top: 6px; }
+
+        .grid-box { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+        .item-card {
+            background: white; border: 1px solid var(--border); padding: 16px;
+            border-radius: var(--radius-sm); cursor: pointer; transition: 0.3s;
+            display: flex; align-items: center; gap: 13px;
+        }
+        .item-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
+        .item-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+
+        .table-wrap { background: white; border-radius: var(--radius-md); box-shadow: var(--shadow); overflow: hidden; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #F8F9FA; padding: 13px 15px; text-align: left; font-size: 10px; color: var(--text-sub); text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; }
+        td { padding: 13px 15px; border-bottom: 1px solid #eee; font-size: 13px; }
+        tr:last-child td { border-bottom: none; }
+
+        /* Mobile table scroll */
+        .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+        .btn { padding: 9px 18px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; font-size: 13px; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-main); }
+        .btn-outline:hover { background: #f5f5f5; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-sm { padding: 6px 10px; font-size: 12px; }
+
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 800; }
+        .bg-wait { background: #FEF3C7; color: #D97706; }
+        .bg-ok { background: #D1FAE5; color: #059669; }
+        .bg-no { background: #FEE2E2; color: #DC2626; }
+
+        .form-group { margin-bottom: 18px; }
+        .form-label { display: block; font-size: 11px; font-weight: 800; margin-bottom: 7px; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-control { width: 100%; padding: 11px 13px; border: 2px solid var(--border); border-radius: 10px; outline: none; font-family: inherit; font-size: 14px; background: white; color: var(--text-main); }
+        .form-control:focus { border-color: var(--primary); }
+
+        .toast-container { position: fixed; bottom: calc(var(--bottom-nav-h) + 10px); right: 16px; z-index: 10000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+        @media (min-width: 769px) { .toast-container { bottom: 20px; } }
+        .toast { padding: 12px 18px; border-radius: 10px; color: white; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 9px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); animation: slideIn 0.3s ease forwards; pointer-events: auto; }
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--danger); }
+        .toast.info { background: var(--primary); }
+        @keyframes slideIn { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(110%); opacity: 0; } }
+
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 9000; align-items: flex-end; justify-content: center; backdrop-filter: blur(4px); }
+        @media (min-width: 769px) { .modal-overlay { align-items: center; } }
+        .modal-card { background: white; padding: 28px; border-radius: var(--radius-md) var(--radius-md) 0 0; width: 100%; box-shadow: 0 -10px 40px rgba(0,0,0,0.2); }
+        @media (min-width: 769px) { .modal-card { border-radius: var(--radius-md); width: 380px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); } }
+
+        .event-card { border: 1px solid var(--border); border-left: 4px solid var(--primary); padding: 14px; border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: flex-start; background: white; transition: 0.2s; }
+
+        /* ═══════════════════════════════════════
+           PRINT BLANK — ПОЛНОЦЕННЫЙ БЛАНК
+        ═══════════════════════════════════════ */
+        #print-blank { display: none; }
+
+        @media print {
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            body * { visibility: hidden !important; }
+            #print-blank, #print-blank * { visibility: visible !important; }
+            #print-blank {
+                display: block !important; position: fixed !important;
+                inset: 0; width: 210mm; min-height: 297mm;
+                padding: 20mm 18mm; background: white; color: #000;
+                font-family: 'Plus Jakarta Sans', sans-serif;
+            }
+        }
+
+        /* Print blank styles (also used for HTML download preview) */
+        .pb-wrap { font-family: 'Plus Jakarta Sans', sans-serif; color: #000; background: white; }
+        .pb-gov-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .pb-gov-left { font-size: 10px; line-height: 1.6; max-width: 45%; }
+        .pb-gov-right { font-size: 10px; line-height: 1.6; text-align: right; max-width: 45%; }
+        .pb-center-title { text-align: center; margin: 20px 0; }
+        .pb-center-title h1 { font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #000; padding-bottom: 10px; display: inline-block; }
+        .pb-center-title .pb-docnum { font-size: 11px; margin-top: 8px; }
+        .pb-table { width: 100%; border-collapse: collapse; margin-top: 18px; }
+        .pb-table td { border: 1px solid #000; padding: 9px 12px; font-size: 11px; vertical-align: top; }
+        .pb-table td:first-child { width: 38%; font-weight: 700; background: #f8f8f8; }
+        .pb-desc-box { border: 1px solid #000; margin-top: 16px; padding: 12px; min-height: 60px; font-size: 11px; line-height: 1.6; }
+        .pb-desc-box .pb-desc-label { font-weight: 700; margin-bottom: 6px; font-size: 10px; text-transform: uppercase; }
+        .pb-footer { margin-top: 40px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: flex-end; gap: 20px; }
+        .pb-sign-block p { font-size: 10px; line-height: 2; }
+        .pb-sign-line { border-bottom: 1px solid #000; width: 180px; margin-bottom: 4px; }
+        .pb-stamp { width: 120px; height: 120px; border: 2px dashed #aaa; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #aaa; font-size: 8px; text-align: center; margin: 0 auto; }
+        .pb-status-badge { display: inline-block; padding: 4px 14px; border-radius: 4px; font-weight: 900; font-size: 12px; letter-spacing: 1px; }
+        .pb-status-ok { background: #D1FAE5; color: #059669; border: 1px solid #059669; }
+        .pb-status-wait { background: #FEF3C7; color: #D97706; border: 1px solid #D97706; }
+        .pb-status-no { background: #FEE2E2; color: #DC2626; border: 1px solid #DC2626; }
+        .pb-watermark { text-align: center; margin-top: 30px; font-size: 9px; color: #999; border-top: 1px dashed #ddd; padding-top: 10px; }
+        .pb-qr-placeholder { width: 60px; height: 60px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #999; text-align: center; margin: 0 auto; }
+
+        /* Download preview modal */
+        #download-preview { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 9500; align-items: center; justify-content: center; backdrop-filter: blur(6px); }
+        .dp-card { background: white; border-radius: var(--radius-lg); width: 95%; max-width: 720px; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; }
+        .dp-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .dp-body { flex: 1; overflow-y: auto; padding: 24px; background: #f5f5f5; }
+        .dp-preview { background: white; max-width: 600px; margin: 0 auto; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); font-size: 12px; }
+        .dp-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+    </style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash-screen">
+    <div class="splash-logo"><i class="bi bi-shield-check"></i></div>
+    <div class="splash-text">Toshkent shahar<br>Bolalar Tashkiloti bo'limi</div>
+    <div class="splash-ver">SARDORLAR PLATFORMASI · v5.0</div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<!-- STATUS MODAL -->
+<div id="status-modal" class="modal-overlay">
+    <div class="modal-card">
+        <h3 style="margin-bottom: 20px; font-weight: 800; color: var(--primary-dark);">Holatni o'zgartirish</h3>
+        <input type="hidden" id="modal-doc-id">
+        <div class="form-group">
+            <label class="form-label">Yangi holatni tanlang</label>
+            <select id="modal-status-sel" class="form-control">
+                <option value="wait">⏳ Kutilmoqda</option>
+                <option value="ok">✅ Tasdiqlangan</option>
+                <option value="no">❌ Rad etilgan</option>
+            </select>
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn btn-outline" style="flex: 1; justify-content: center;" onclick="app.closeModal()">Bekor qilish</button>
+            <button class="btn btn-primary" style="flex: 1; justify-content: center;" onclick="app.saveStatus()">Saqlash</button>
+        </div>
+    </div>
+</div>
+
+<!-- DOWNLOAD PREVIEW MODAL -->
+<div id="download-preview">
+    <div class="dp-card">
+        <div class="dp-header">
+            <div>
+                <div style="font-weight: 800; color: var(--primary-dark); font-size: 16px;">📄 Hujjat ko'rinishi</div>
+                <div style="font-size: 12px; color: var(--text-sub); margin-top: 2px;">Yuklab olishdan oldin tekshiring</div>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="app.closeDownloadPreview()"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="dp-body">
+            <div class="dp-preview" id="dp-preview-content"></div>
+        </div>
+        <div class="dp-footer" style="flex-wrap:wrap;">
+            <button class="btn btn-outline" onclick="app.closeDownloadPreview()">Bekor qilish</button>
+            <button class="btn btn-outline" onclick="app.doPrint()" style="color: var(--primary); border-color: var(--primary);">
+                <i class="bi bi-printer"></i> Chop etish
+            </button>
+            <button class="btn btn-outline" onclick="app.doDownloadUploadedFile()" id="dp-uploaded-btn" style="color:#059669;border-color:#059669;display:none;">
+                <i class="bi bi-file-earmark-arrow-down"></i> <span id="dp-uploaded-label">Yuklangan fayl</span>
+            </button>
+            <button class="btn btn-primary" onclick="app.doDownloadBlankPDF()" id="dp-download-btn">
+                <i class="bi bi-file-earmark-pdf"></i> Blank (PDF)
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- AUTH PAGE -->
+<div id="auth-page" class="auth-container">
+    <div class="auth-card">
+        <div style="text-align:center; margin-bottom:24px;">
+            <div style="width:64px;height:64px;background:var(--primary-dark);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:28px;color:white;">
+                <i class="bi bi-shield-lock-fill"></i>
+            </div>
+            <h2 style="font-weight: 800; font-size: 20px;">Platformaga kirish</h2>
+            <p style="font-size: 12px; color: var(--text-sub); margin-top: 4px;">Toshkent Bolalar Tashkiloti · v5.0</p>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Login</label>
+            <input type="text" id="log-user" class="form-control" placeholder="admin_toshkent" autocomplete="username">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Parol</label>
+            <input type="password" id="log-pass" class="form-control" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter') app.login()">
+        </div>
+        <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 13px;" onclick="app.login()">
+            <i class="bi bi-box-arrow-in-right"></i> Tizimga kirish
+        </button>
+        <div class="demo-accounts">
+            <h4 style="font-size: 10px; text-transform: uppercase; margin-bottom: 8px; color: var(--primary); letter-spacing: 1px;">Demo hisoblar (bosing):</h4>
+            <div id="demo-list"></div>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN SHELL -->
+<div id="main-shell" class="shell">
+
+    <!-- SIDEBAR (desktop only) -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <h2>Toshkent shahar<br>Bolalar Tashkiloti</h2>
+            <div class="sidebar-ver">SARDORLAR PLATFORMASI v5.0</div>
+        </div>
+        <nav>
+            <div class="nav-item active" onclick="app.tab('dash')" id="m-dash"><i class="bi bi-speedometer2"></i> Umumiy Panel</div>
+            <div class="nav-label">Koordinatsiya</div>
+            <div class="nav-item" onclick="app.tab('dirs')" id="m-dirs"><i class="bi bi-layers-half"></i> 9 ta yo'nalish</div>
+            <div class="nav-item" onclick="app.tab('dists')" id="m-dists"><i class="bi bi-geo-alt"></i> 12 ta tuman</div>
+            <div class="nav-item" onclick="app.tab('mahalla')" id="m-mahalla"><i class="bi bi-houses"></i> Mahalla tizimi</div>
+            <div class="nav-label">Hujjatlar</div>
+            <div class="nav-item" onclick="app.tab('archive')" id="m-archive"><i class="bi bi-folder2-open"></i> Arxiv</div>
+            <div class="nav-item" onclick="app.tab('upload')" id="m-upload"><i class="bi bi-cloud-arrow-up"></i> Hujjat yuborish</div>
+            <div class="nav-label">Sardorlar</div>
+            <div class="nav-item" onclick="app.tab('leaders')" id="m-leaders"><i class="bi bi-person-plus-fill"></i> Yangi Sardor</div>
+            <div class="nav-label">Tadbirlar</div>
+            <div class="nav-item" onclick="app.tab('calendar')" id="m-calendar"><i class="bi bi-calendar-event"></i> Taqvim</div>
+        </nav>
+        <div style="margin-top: auto; padding-top: 16px;">
+            <div id="sidebar-user" style="padding: 10px 13px; background: rgba(255,255,255,0.08); border-radius: 10px; margin-bottom: 8px; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                <i class="bi bi-person-circle" style="font-size: 18px;"></i>
+                <span id="sidebar-username">—</span>
+            </div>
+            <div class="nav-item" style="color: #ff8080;" onclick="app.logout()">
+                <i class="bi bi-box-arrow-left"></i> Tizimdan chiqish
+            </div>
+        </div>
+    </aside>
+
+    <!-- MOBILE HEADER -->
+    <div class="mob-header">
+        <div>
+            <div style="font-size: 11px; opacity: 0.6;">Bolalar Tashkiloti</div>
+            <h3 id="mob-tab-title">Panel</h3>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span id="mob-user" class="mob-user">Admin</span>
+        </div>
+    </div>
+
+    <!-- CONTENT -->
+    <main class="content">
+        <header class="topbar">
+            <h3 id="tab-title" style="font-weight: 800; color: var(--primary-dark);">Umumiy Panel</h3>
+            <div style="display:flex; align-items:center; gap:14px;">
+                <span id="user-display" class="badge bg-ok">Administrator</span>
+                <button class="btn btn-outline btn-sm" onclick="app.logout()" style="font-size: 12px;">
+                    <i class="bi bi-box-arrow-left"></i> Chiqish
+                </button>
+            </div>
+        </header>
+
+        <div class="scroller">
+
+            <!-- DASHBOARD -->
+            <div id="tab-dash" class="tab-content">
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <h4>Jami Hujjatlar</h4>
+                        <div class="val" id="st-total">0</div>
+                    </div>
+                    <div class="stat-card" style="border-color: var(--warning);">
+                        <h4>Kutilmoqda</h4>
+                        <div class="val" id="st-wait">0</div>
+                    </div>
+                    <div class="stat-card" style="border-color: var(--success);">
+                        <h4>Tasdiqlangan</h4>
+                        <div class="val" id="st-ok">0</div>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <div style="padding: 18px 20px; font-weight: 800; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                        <span>Yaqinda yuklangan hujjatlar</span>
+                        <button class="btn btn-outline btn-sm" onclick="app.tab('archive')">Barchasi</button>
+                    </div>
+                    <div class="table-scroll">
+                        <table id="recent-table">
+                            <thead>
+                                <tr>
+                                    <th>Sardor</th>
+                                    <th>Tuman</th>
+                                    <th>Yo'nalish</th>
+                                    <th>Sana</th>
+                                    <th>Holat</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DIRECTIONS -->
+            <div id="tab-dirs" class="tab-content" style="display:none;">
+                <div class="grid-box" id="dir-list"></div>
+            </div>
+
+            <!-- DISTRICTS -->
+            <div id="tab-dists" class="tab-content" style="display:none;">
+                <div style="margin-bottom: 18px;">
+                    <h4 style="font-weight: 800;">Toshkent shahar tuman bo'limlari</h4>
+                    <p style="font-size: 13px; color: var(--text-sub); margin-top: 4px;">Tumanni tanlab hujjatlarni ko'ring</p>
+                </div>
+                <div class="grid-box" id="dist-list"></div>
+            </div>
+
+            <!-- MAHALLA -->
+            <div id="tab-mahalla" class="tab-content" style="display:none;">
+                <div style="display: flex; gap: 18px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 280px; background: white; padding: 24px; border-radius: var(--radius-md); box-shadow: var(--shadow); align-self: flex-start;">
+                        <h4 style="font-weight: 800; margin-bottom: 20px; color: var(--primary-dark);">Yangi mahalla qo'shish</h4>
+                        <div class="form-group">
+                            <label class="form-label">Mahalla nomi</label>
+                            <input type="text" id="mh-name" class="form-control" placeholder="Masalan: Navoiy mahallasi">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tuman</label>
+                            <select id="mh-dist" class="form-control"></select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Bosh sardor (F.I.Sh.)</label>
+                            <input type="text" id="mh-leader" class="form-control" placeholder="Masalan: Aliyev Vali">
+                        </div>
+                        <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="app.addMahalla()">
+                            <i class="bi bi-plus-circle"></i> Mahallani saqlash
+                        </button>
+                    </div>
+                    <div style="flex: 2; min-width: 300px; background: white; padding: 24px; border-radius: var(--radius-md); box-shadow: var(--shadow);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
+                            <h4 style="font-weight: 800; color: var(--primary-dark);">Mahalla sardorlari</h4>
+                            <input type="text" class="form-control" style="width: 220px;" placeholder="Qidirish..." onkeyup="app.renderMahalla(this.value)">
+                        </div>
+                        <div class="table-scroll">
+                            <table id="mahalla-table">
+                                <thead>
+                                    <tr>
+                                        <th>Mahalla nomi</th>
+                                        <th>Tuman</th>
+                                        <th>Bosh Sardor</th>
+                                        <th style="text-align:right;">Amal</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ARCHIVE -->
+            <div id="tab-archive" class="tab-content" style="display:none;">
+                <div class="table-wrap">
+                    <div style="padding: 16px 20px; border-bottom: 1px solid #eee; display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
+                        <h4 style="font-weight: 800;">Hujjatlar to'plami (Arxiv)</h4>
+                        <div style="display:flex; gap:8px; flex-wrap: wrap;">
+                            <select class="form-control" id="filter-status" onchange="app.renderArchive()" style="width: 140px;">
+                                <option value="">Barcha holatlar</option>
+                                <option value="wait">Kutilmoqda</option>
+                                <option value="ok">Tasdiqlangan</option>
+                                <option value="no">Rad etilgan</option>
+                            </select>
+                            <select class="form-control" id="filter-dist" onchange="app.renderArchive()" style="width: 160px;"></select>
+                            <input type="text" class="form-control" placeholder="Qidirish..." onkeyup="app.searchArchive(this.value)" style="width: 180px;">
+                        </div>
+                    </div>
+                    <div class="table-scroll">
+                        <table id="archive-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Sardor</th>
+                                    <th>Tuman</th>
+                                    <th>Yo'nalish</th>
+                                    <th>Hujjat nomi</th>
+                                    <th>Holat</th>
+                                    <th style="text-align:right;">Amallar</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- UPLOAD -->
+            <div id="tab-upload" class="tab-content" style="display:none;">
+                <div style="max-width: 560px; margin: 0 auto; background: white; padding: 32px; border-radius: var(--radius-lg); box-shadow: var(--shadow);">
+                    <h3 style="text-align: center; margin-bottom: 24px; font-weight: 800;">Hujjat topshirish</h3>
+                    <div class="form-group">
+                        <label class="form-label">Sardor F.I.Sh</label>
+                        <input type="text" id="f-name" class="form-control" placeholder="Masalan: Abdullayev Anvar">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Yo'nalishni tanlang</label>
+                        <select id="f-dir" class="form-control"></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tumanni tanlang</label>
+                        <select id="f-dist" class="form-control"></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Hujjat sarlavhasi</label>
+                        <input type="text" id="f-title" class="form-control" placeholder="Hisobot mavzusi">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Faylni tanlang (PDF, JPG, DOCX)</label>
+                        <input type="file" class="form-control" id="f-file">
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 13px;" onclick="app.submit()">
+                        <i class="bi bi-cloud-check"></i> Platformaga yuborish
+                    </button>
+                </div>
+            </div>
+
+            <!-- CALENDAR -->
+            <div id="tab-calendar" class="tab-content" style="display:none;">
+                <div style="display: flex; gap: 18px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 280px; background: white; padding: 24px; border-radius: var(--radius-md); box-shadow: var(--shadow); align-self: flex-start;">
+                        <h4 style="font-weight: 800; margin-bottom: 20px; color: var(--primary-dark);">Yangi tadbir qo'shish</h4>
+                        <div class="form-group">
+                            <label class="form-label">Tadbir nomi</label>
+                            <input type="text" id="ev-title" class="form-control" placeholder="Sardorlar forumi...">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Sana va vaqt</label>
+                            <input type="datetime-local" id="ev-date" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tuman / Manzil</label>
+                            <select id="ev-dist" class="form-control"></select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tadbir tavsifi</label>
+                            <textarea id="ev-desc" class="form-control" rows="3" placeholder="Tadbir haqida ma'lumot..."></textarea>
+                        </div>
+                        <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="app.addEvent()">
+                            <i class="bi bi-calendar-plus"></i> Taqvimga qo'shish
+                        </button>
+                    </div>
+                    <div style="flex: 2; min-width: 300px; background: white; padding: 24px; border-radius: var(--radius-md); box-shadow: var(--shadow);">
+                        <h4 style="font-weight: 800; margin-bottom: 20px; color: var(--primary-dark);">Rejalashtirilgan tadbirlar</h4>
+                        <div id="events-list" style="display: flex; flex-direction: column; gap: 12px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- YANGI SARDOR -->
+            <div id="tab-leaders" class="tab-content" style="display:none;">
+                <div style="display: flex; gap: 18px; flex-wrap: wrap;">
+                    <!-- Add form -->
+                    <div style="flex: 1; min-width: 300px; background: white; padding: 28px; border-radius: var(--radius-md); box-shadow: var(--shadow); align-self: flex-start;">
+                        <h4 style="font-weight: 800; margin-bottom: 22px; color: var(--primary-dark);"><i class="bi bi-person-plus-fill" style="color:var(--primary);margin-right:8px;"></i>Yangi Sardor qo'shish</h4>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0 14px;">
+                            <div class="form-group">
+                                <label class="form-label">Familiya</label>
+                                <input type="text" id="sl-familiya" class="form-control" placeholder="Masalan: Alimov">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Ism</label>
+                                <input type="text" id="sl-ism" class="form-control" placeholder="Masalan: Sardor">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Otasining ismi (Sharif)</label>
+                            <input type="text" id="sl-otaism" class="form-control" placeholder="Masalan: Rahmatullayevich">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tug'ilgan sana</label>
+                            <input type="date" id="sl-dob" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Maktab (o'qish joyi)</label>
+                            <input type="text" id="sl-school" class="form-control" placeholder="Masalan: 45-sonli maktab">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Yashash manzili</label>
+                            <input type="text" id="sl-address" class="form-control" placeholder="Masalan: Yunusobod tumani, Navoiy ko'chasi 12">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Yo'nalish</label>
+                            <select id="sl-dir" class="form-control"></select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tuman</label>
+                            <select id="sl-dist" class="form-control"></select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Sardor rasmi</label>
+                            <div id="sl-photo-preview" style="width:100px;height:100px;border-radius:50%;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;overflow:hidden;background:#f8f8f8;cursor:pointer;" onclick="document.getElementById('sl-photo-input').click()">
+                                <i class="bi bi-person-circle" style="font-size:40px;color:var(--border);" id="sl-photo-icon"></i>
+                                <img id="sl-photo-img" src="" style="width:100%;height:100%;object-fit:cover;display:none;border-radius:50%;">
+                            </div>
+                            <div style="text-align:center;margin-bottom:8px;">
+                                <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('sl-photo-input').click()">
+                                    <i class="bi bi-camera"></i> Rasm tanlash
+                                </button>
+                                <button type="button" class="btn btn-outline btn-sm" id="sl-photo-clear-btn" style="color:var(--danger);border-color:var(--danger);display:none;" onclick="app.clearLeaderPhoto()">
+                                    <i class="bi bi-x"></i> O'chirish
+                                </button>
+                            </div>
+                            <input type="file" id="sl-photo-input" accept="image/*" style="display:none;" onchange="app.previewLeaderPhoto(this)">
+                        </div>
+                        <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 13px;" onclick="app.addLeader()">
+                            <i class="bi bi-person-check-fill"></i> Sardorni saqlash
+                        </button>
+                    </div>
+                    <!-- List -->
+                    <div style="flex: 2; min-width: 300px; background: white; padding: 24px; border-radius: var(--radius-md); box-shadow: var(--shadow);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
+                            <h4 style="font-weight: 800; color: var(--primary-dark);">Sardorlar ro'yxati</h4>
+                            <input type="text" class="form-control" style="width: 220px;" placeholder="Qidirish..." onkeyup="app.renderLeaders(this.value)">
+                        </div>
+                        <div class="table-scroll">
+                            <table id="leaders-table">
+                                <thead>
+                                    <tr>
+                                        <th>F.I.Sh.</th>
+                                        <th>Tug'ilgan sana</th>
+                                        <th>Maktab</th>
+                                        <th>Manzil</th>
+                                        <th>Yo'nalish</th>
+                                        <th>Tuman</th>
+                                        <th style="text-align:right;">Amal</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /scroller -->
+    </main>
+
+    <!-- BOTTOM NAV (mobile) -->
+    <nav class="bottom-nav">
+        <div class="bn-item active" onclick="app.tab('dash')" id="bn-dash">
+            <i class="bi bi-speedometer2"></i><span>Panel</span>
+        </div>
+        <div class="bn-item" onclick="app.tab('dirs')" id="bn-dirs">
+            <i class="bi bi-layers-half"></i><span>Yo'nalish</span>
+        </div>
+        <div class="bn-item" onclick="app.tab('archive')" id="bn-archive">
+            <i class="bi bi-folder2-open"></i><span>Arxiv</span>
+        </div>
+        <div class="bn-item" onclick="app.tab('upload')" id="bn-upload">
+            <i class="bi bi-cloud-arrow-up"></i><span>Yuborish</span>
+        </div>
+        <div class="bn-item" onclick="app.tab('calendar')" id="bn-calendar">
+            <i class="bi bi-calendar-event"></i><span>Taqvim</span>
+        </div>
+        <div class="bn-item" onclick="app.tab('leaders')" id="bn-leaders">
+            <i class="bi bi-person-plus-fill"></i><span>Sardor</span>
+        </div>
+    </nav>
+</div>
+
+<!-- PRINT BLANK (hidden, only for print) -->
+<div id="print-blank"></div>
+
+<script>
+const app = {
+    directions: [
+        {id:1, name:"Bosh sardor",      icon:"bi-star-fill",       color:"#6750A4", user:"bosh_sardor", pass:"Sardor2026!"},
+        {id:2, name:"Jasorat",          icon:"bi-shield-shaded",   color:"#EF4444", user:"jasorat",     pass:"Jasorat2026!"},
+        {id:3, name:"Ibrat farzandlari",icon:"bi-book-half",       color:"#F59E0B", user:"ibrat",       pass:"Ibrat2026!"},
+        {id:4, name:"Ustoz AI",         icon:"bi-robot",           color:"#10B981", user:"ustoz_ai",    pass:"AI2026!"},
+        {id:5, name:"Yashil makon",     icon:"bi-tree-fill",       color:"#22C55E", user:"yashil",      pass:"Yashil2026!"},
+        {id:6, name:"Mutolaa",          icon:"bi-bookmark-heart",  color:"#8B5CF6", user:"mutolaa",     pass:"Kitob2026!"},
+        {id:7, name:"Qizlar akademiyasi",icon:"bi-mortarboard-fill",color:"#EC4899",user:"qizlar",      pass:"Qizlar2026!"},
+        {id:8, name:"Iqtidor",          icon:"bi-lightbulb-fill",  color:"#3B82F6", user:"iqtidor",     pass:"Iqtidor2026!"},
+        {id:9, name:"Matbuot va media", icon:"bi-camera-reels",    color:"#6366F1", user:"media",       pass:"Media2026!"}
+    ],
+    districts: [
+        "Yunusobod","Chilonzor","Olmazor","Mirobod","Mirzo Ulug'bek",
+        "Shayxontohur","Uchtepa","Sergeli","Yakkasaroy","Yashnobod",
+        "Bektemir","Yangihayot"
+    ],
+    docs: [], events: [], mahallas: [], leaders: [],
+    currentDocId: null,
+
+    async init() {
+        // Show splash
+        setTimeout(() => {
+            const s = document.getElementById('splash-screen');
+            s.style.opacity = '0';
+            setTimeout(() => s.style.display = 'none', 600);
+        }, 1600);
+        this.renderDemoLogins();
+        this.fillSelects();
+
+        // Load all data from Firestore in real-time
+        this._listenCollection('docs', 'docs', () => { this.renderAll(); this.updateStats(); });
+        this._listenCollection('events', 'events', () => this.renderEvents());
+        this._listenCollection('mahallas', 'mahallas', () => this.renderMahalla());
+        this._listenCollection('leaders', 'leaders', () => this.renderLeaders());
+    },
+
+    _listenCollection(colName, prop, cb) {
+        db.collection(colName).orderBy('id', 'desc').onSnapshot(snap => {
+            this[prop] = snap.docs.map(d => d.data());
+            cb();
+        }, err => {
+            // fallback to localStorage if Firestore fails
+            console.warn('Firestore error, using localStorage:', err);
+            const saved = localStorage.getItem('tsp_' + colName);
+            if (saved) this[prop] = JSON.parse(saved);
+            cb();
+        });
+    },
+
+    async saveDB() {
+        // Save all collections to Firestore
+        await this._saveCollection('docs', this.docs);
+        await this._saveCollection('events', this.events);
+        await this._saveCollection('mahallas', this.mahallas);
+        await this._saveCollection('leaders', this.leaders);
+        // Also keep localStorage as backup
+        localStorage.setItem('tsp_docs', JSON.stringify(this.docs));
+        localStorage.setItem('tsp_events', JSON.stringify(this.events));
+        localStorage.setItem('tsp_mahallas', JSON.stringify(this.mahallas));
+        localStorage.setItem('tsp_leaders', JSON.stringify(this.leaders));
+    },
+
+    async _saveCollection(colName, arr) {
+        try {
+            const batch = db.batch();
+            // Clear old docs then write new ones
+            const snap = await db.collection(colName).get();
+            snap.docs.forEach(d => batch.delete(d.ref));
+            arr.forEach(item => {
+                const ref = db.collection(colName).doc(String(item.id));
+                batch.set(ref, item);
+            });
+            await batch.commit();
+        } catch(e) {
+            console.warn('Firestore save error:', e);
+        }
+    },
+
+    showToast(msg, type = 'info') {
+        const c = document.getElementById('toast-container');
+        const t = document.createElement('div');
+        t.className = `toast ${type}`;
+        const icons = {success:'bi-check-circle', error:'bi-exclamation-triangle', info:'bi-info-circle'};
+        t.innerHTML = `<i class="bi ${icons[type]||'bi-info-circle'}" style="font-size:18px;"></i> ${msg}`;
+        c.appendChild(t);
+        setTimeout(() => { t.style.animation = 'slideOut 0.3s ease forwards'; setTimeout(() => t.remove(), 300); }, 3000);
+    },
+
+    renderDemoLogins() {
+        const box = document.getElementById('demo-list');
+        box.innerHTML = `<div class="demo-item" onclick="app.setAuth('admin_toshkent','Toshkent2026!')"><span>👑 Master Admin</span><b style="color:var(--primary);">admin_toshkent</b></div>`;
+        this.directions.forEach(d => {
+            box.innerHTML += `<div class="demo-item" onclick="app.setAuth('${d.user}','${d.pass}')"><span>${d.name}</span><b>${d.user}</b></div>`;
+        });
+    },
+
+    setAuth(u, p) {
+        document.getElementById('log-user').value = u;
+        document.getElementById('log-pass').value = p;
+        this.showToast("Ma'lumotlar kiritildi!", "success");
+    },
+
+    login() {
+        const u = document.getElementById('log-user').value.trim();
+        const p = document.getElementById('log-pass').value.trim();
+        if (u && p) {
+            document.getElementById('auth-page').style.display = 'none';
+            document.getElementById('main-shell').classList.add('active');
+            const displayName = u === 'admin_toshkent' ? 'Master Admin' : u;
+            document.getElementById('user-display').innerText = displayName;
+            document.getElementById('sidebar-username').innerText = displayName;
+            document.getElementById('mob-user').innerText = displayName;
+            this.showToast("Tizimga kirdingiz!", "success");
+        } else {
+            this.showToast("Login va parolni kiriting!", "error");
+        }
+    },
+
+    logout() {
+        document.getElementById('auth-page').style.display = 'flex';
+        document.getElementById('main-shell').classList.remove('active');
+        document.getElementById('log-user').value = '';
+        document.getElementById('log-pass').value = '';
+        this.showToast("Tizimdan chiqdingiz!", "info");
+    },
+
+    tab(id) {
+        document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+        document.getElementById('tab-' + id).style.display = 'block';
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        const nm = document.getElementById('m-' + id);
+        if (nm) nm.classList.add('active');
+        document.querySelectorAll('.bn-item').forEach(n => n.classList.remove('active'));
+        const bn = document.getElementById('bn-' + id);
+        if (bn) bn.classList.add('active');
+        const titles = {
+            dash:"Umumiy Panel", dirs:"9 ta yo'nalish", dists:"12 ta tuman",
+            mahalla:"Mahalla tizimi", archive:"Hujjatlar Arxivi",
+            upload:"Hujjat topshirish", calendar:"Tadbirlar taqvimi",
+            leaders:"Yangi Sardor qo'shish"
+        };
+        const t = titles[id] || '';
+        document.getElementById('tab-title').innerText = t;
+        document.getElementById('mob-tab-title').innerText = t;
+    },
+
+    updateStats() {
+        document.getElementById('st-total').innerText = this.docs.length;
+        document.getElementById('st-wait').innerText = this.docs.filter(x => x.status==='wait').length;
+        document.getElementById('st-ok').innerText = this.docs.filter(x => x.status==='ok').length;
+    },
+
+    fillSelects() {
+        const dSel = document.getElementById('f-dir');
+        const tSel = document.getElementById('f-dist');
+        const fDist = document.getElementById('filter-dist');
+        const evDist = document.getElementById('ev-dist');
+        const mhDist = document.getElementById('mh-dist');
+        const slDir = document.getElementById('sl-dir');
+        const slDist = document.getElementById('sl-dist');
+        this.directions.forEach(d => {
+            dSel.innerHTML += `<option value="${d.name}">${d.name}</option>`;
+            slDir.innerHTML += `<option value="${d.name}">${d.name}</option>`;
+        });
+        tSel.innerHTML = '<option value="">Tumanni tanlang</option>';
+        fDist.innerHTML = '<option value="">Barcha tumanlar</option>';
+        evDist.innerHTML = '<option value="">Tuman / Joyni tanlang</option>';
+        mhDist.innerHTML = '<option value="">Tumanni tanlang</option>';
+        slDist.innerHTML = '<option value="">Tumanni tanlang</option>';
+        this.districts.forEach(d => {
+            tSel.innerHTML  += `<option value="${d}">${d}</option>`;
+            fDist.innerHTML += `<option value="${d}">${d}</option>`;
+            evDist.innerHTML+= `<option value="${d}">${d}</option>`;
+            mhDist.innerHTML+= `<option value="${d}">${d}</option>`;
+            slDist.innerHTML+= `<option value="${d}">${d}</option>`;
+        });
+    },
+
+    renderAll() {
+        this.renderRecent();
+        this.renderDirList();
+        this.renderDistList();
+        this.renderArchive();
+        this.renderMahalla();
+        this.renderEvents();
+        this.renderLeaders();
+    },
+
+    renderRecent() {
+        const body = document.querySelector('#recent-table tbody');
+        body.innerHTML = '';
+        this.docs.slice(0, 5).forEach(d => {
+            const st = {ok:'Tasdiqlangan', no:'Rad etilgan', wait:'Kutilmoqda'};
+            body.innerHTML += `<tr>
+                <td><b>${d.leader}</b></td>
+                <td>${d.dist}</td>
+                <td>${d.dir}</td>
+                <td>${d.date}</td>
+                <td><span class="badge bg-${d.status}">${st[d.status]}</span></td>
+            </tr>`;
+        });
+    },
+
+    renderDirList() {
+        const g = document.getElementById('dir-list'); g.innerHTML = '';
+        this.directions.forEach(d => {
+            const cnt = this.docs.filter(x => x.dir===d.name).length;
+            g.innerHTML += `<div class="item-card" onclick="app.filterBy('dir','${d.name}')"><div class="item-icon" style="background:${d.color}20;color:${d.color}"><i class="bi ${d.icon}"></i></div><div><div style="font-weight:800;">${d.name}</div><div style="font-size:11px;color:var(--text-sub);">${cnt} ta hujjat</div></div></div>`;
+        });
+    },
+
+    renderDistList() {
+        const g = document.getElementById('dist-list'); g.innerHTML = '';
+        this.districts.forEach(d => {
+            const cnt = this.docs.filter(x => x.dist===d).length;
+            g.innerHTML += `<div class="item-card" onclick="app.filterBy('dist','${d}')"><div class="item-icon" style="background:var(--primary-light);color:var(--primary-dark)"><i class="bi bi-geo-alt"></i></div><div><div style="font-weight:800;">${d} tumani</div><div style="font-size:11px;color:var(--text-sub);">${cnt} ta hujjat</div></div></div>`;
+        });
+    },
+
+    filterBy(type, val) {
+        this.tab('archive');
+        if (type==='dist') document.getElementById('filter-dist').value = val;
+        this.renderArchive();
+    },
+
+    searchArchive(val) { this.renderArchive(val); },
+
+    renderArchive(filterTerm='') {
+        const body = document.querySelector('#archive-table tbody');
+        const distF = document.getElementById('filter-dist').value;
+        const statF = document.getElementById('filter-status').value;
+        body.innerHTML = '';
+        let filtered = this.docs;
+        if (distF) filtered = filtered.filter(x => x.dist===distF);
+        if (statF) filtered = filtered.filter(x => x.status===statF);
+        if (filterTerm) filtered = filtered.filter(x => x.leader.toLowerCase().includes(filterTerm.toLowerCase()) || x.title.toLowerCase().includes(filterTerm.toLowerCase()));
+        const st = {ok:'Tasdiqlangan', no:'Rad etilgan', wait:'Kutilmoqda'};
+        filtered.forEach(d => {
+            body.innerHTML += `<tr>
+                <td><b>#${d.id}</b></td>
+                <td>${d.leader}</td>
+                <td>${d.dist}</td>
+                <td>${d.dir}</td>
+                <td>${d.title}</td>
+                <td><span class="badge bg-${d.status}">${st[d.status]}</span></td>
+                <td style="text-align:right; white-space:nowrap;">
+                    <button class="btn btn-outline btn-sm" style="color:var(--success);border-color:var(--success);" onclick="app.openDownloadPreview(${d.id})" title="Ko'rish va yuklab olish"><i class="bi bi-eye"></i></button>
+                    <button class="btn btn-outline btn-sm" onclick="app.openModal(${d.id})" title="Holatni o'zgartirish"><i class="bi bi-pencil-square"></i></button>
+                    <button class="btn btn-primary btn-sm" onclick="app.openPrintPreview(${d.id})" title="Chop etish"><i class="bi bi-printer"></i></button>
+                    <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger);" onclick="app.deleteDoc(${d.id})" title="Hujjatni o'chirish"><i class="bi bi-trash"></i></button>
+                </td>
+            </tr>`;
+        });
+        if (!filtered.length) {
+            body.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-sub);">Hujjat topilmadi!</td></tr>`;
+        }
+    },
+
+    /* ── BUILD BLANK HTML ── */
+    buildBlankHTML(d) {
+        const st = {ok:'TASDIQLANGAN', no:'RAD ETILGAN', wait:'KUTILMOQDA'};
+        const stClass = {ok:'pb-status-ok', no:'pb-status-no', wait:'pb-status-wait'};
+        const now = new Date().toLocaleDateString('uz-UZ');
+        return `
+<div class="pb-wrap">
+  <div class="pb-gov-top">
+    <div class="pb-gov-left">
+      <b>Toshkent shahar Bolalar tashkiloti bo'limi</b><br>
+      <small style="opacity:0.7;">Sardorlarni muvofiqlashtirish platformasi</small>
+    </div>
+    <div class="pb-gov-right">
+      Hujjat raqami: <b>#${d.id}</b><br>
+      Sana: <b>${d.date}</b><br>
+      Chop etilgan: ${now}<br>
+      <div class="pb-qr-placeholder">QR<br>KOD</div>
+    </div>
+  </div>
+
+  <div class="pb-center-title">
+    <h1>Rasmiy tasdiqnoma blanki</h1>
+    <div class="pb-docnum">Toshkent shahar Bolalar Tashkiloti bo'limi · Sardorlarni muvofiqlashtirish elektron platformasi</div>
+  </div>
+
+  <table class="pb-table">
+    <tr><td>Mas'ul Sardor (F.I.Sh.):</td><td><b>${d.leader}</b></td></tr>
+    <tr><td>Hudud (Tuman):</td><td>${d.dist} tumani</td></tr>
+    <tr><td>Yo'nalish:</td><td>${d.dir}</td></tr>
+    <tr><td>Hujjat mavzusi:</td><td>${d.title}</td></tr>
+    <tr>
+      <td>Hujjat holati:</td>
+      <td><span class="pb-status-badge ${stClass[d.status]}">${st[d.status]}</span></td>
+    </tr>
+  </table>
+
+  <div class="pb-desc-box">
+    <div class="pb-desc-label">Izoh / qo'shimcha ma'lumot:</div>
+    Ushbu hujjat Toshkent shahar Bolalar Tashkiloti bo'limi elektron platformasi tomonidan shakllantirildi.
+    Hujjatning aslligi platforma identifikatsiya raqami orqali tasdiqlanadi.
+    Hujjat raqami: <b>#${d.id}</b>.
+  </div>
+
+  <div class="pb-footer">
+    <div class="pb-sign-block">
+      <div class="pb-sign-line"></div>
+      <p>Tasdiqlovchi shaxs imzosi</p>
+      <p style="margin-top:4px;">F.I.Sh.: ______________________</p>
+      <p style="margin-top:4px;">Lavozimi: ____________________</p>
+    </div>
+    <div class="pb-stamp">MUHR<br>O'RNI</div>
+    <div class="pb-sign-block" style="text-align:right;">
+      <div class="pb-sign-line" style="margin-left:auto;"></div>
+      <p>Bo'lim rahbari imzosi</p>
+      <p style="margin-top:4px;">F.I.Sh.: ______________________</p>
+      <p style="margin-top:4px;">Sana: 202___-yil "____"-______</p>
+    </div>
+  </div>
+
+  <div class="pb-watermark">
+    Ushbu hujjat avtomatik ravishda shakllantirilgan · digital.sardorlar.uz · ID: #${d.id}
+  </div>
+</div>`;
+    },
+
+    /* ── PRINT PREVIEW (opens print dialog directly) ── */
+    openPrintPreview(id) {
+        const d = this.docs.find(x => x.id===id);
+        if (!d) return;
+        // Inject into print-blank
+        const pb = document.getElementById('print-blank');
+        pb.innerHTML = this.buildBlankHTML(d);
+        window.print();
+        this.showToast("Chop etish dialogi ochildi!", "info");
+    },
+
+    doPrint() {
+        window.print();
+    },
+
+    /* ── DOWNLOAD PREVIEW MODAL ── */
+    openDownloadPreview(id) {
+        const d = this.docs.find(x => x.id===id);
+        if (!d) return;
+        this.currentDocId = id;
+        document.getElementById('dp-preview-content').innerHTML = this.buildBlankHTML(d);
+        document.getElementById('print-blank').innerHTML = this.buildBlankHTML(d);
+        // Show/hide uploaded file button
+        const uploadedBtn = document.getElementById('dp-uploaded-btn');
+        if (d.fileData && d.fileName) {
+            uploadedBtn.style.display = 'inline-flex';
+            const ext = d.fileName.split('.').pop().toUpperCase();
+            document.getElementById('dp-uploaded-label').textContent = `Yuklangan fayl (${ext})`;
+        } else {
+            uploadedBtn.style.display = 'none';
+        }
+        document.getElementById('download-preview').style.display = 'flex';
+    },
+
+    closeDownloadPreview() {
+        document.getElementById('download-preview').style.display = 'none';
+        this.currentDocId = null;
+    },
+
+    /* ── DOWNLOAD BLANK AS PDF (uses browser print-to-pdf) ── */
+    doDownloadBlankPDF() {
+        const id = this.currentDocId;
+        if (!id) return;
+        const d = this.docs.find(x => x.id===id);
+        if (!d) return;
+        const st = {ok:'TASDIQLANGAN', no:'RAD ETILGAN', wait:'KUTILMOQDA'};
+        const stClass = {ok:'pb-status-ok', no:'pb-status-no', wait:'pb-status-wait'};
+        const now = new Date().toLocaleDateString('uz-UZ');
+        const fullHTML = `<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<title>Blank #${d.id}</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Plus Jakarta Sans',sans-serif;background:white;padding:20mm 18mm;color:#000;}
+  .pb-gov-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+  .pb-gov-left{font-size:11px;line-height:1.7;max-width:48%;}
+  .pb-gov-right{font-size:11px;line-height:1.7;text-align:right;max-width:48%;}
+  .pb-center-title{text-align:center;margin:20px 0 4px;}
+  .pb-center-title h1{font-size:14px;font-weight:900;text-transform:uppercase;border-bottom:2px solid #000;padding-bottom:10px;display:inline-block;}
+  .pb-docnum{font-size:11px;margin-top:8px;color:#555;}
+  .pb-table{width:100%;border-collapse:collapse;margin-top:18px;}
+  .pb-table td{border:1px solid #000;padding:9px 12px;font-size:11px;vertical-align:top;}
+  .pb-table td:first-child{width:38%;font-weight:700;background:#f8f8f8;}
+  .pb-desc-box{border:1px solid #000;margin-top:16px;padding:12px;min-height:60px;font-size:11px;line-height:1.6;}
+  .pb-desc-label{font-weight:800;margin-bottom:6px;font-size:10px;text-transform:uppercase;}
+  .pb-footer{margin-top:40px;display:grid;grid-template-columns:1fr auto 1fr;align-items:flex-end;gap:20px;}
+  .pb-sign-block p{font-size:10px;line-height:2;}
+  .pb-sign-line{border-bottom:1px solid #000;margin-bottom:4px;}
+  .pb-stamp{width:110px;height:110px;border:2px dashed #aaa;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:8px;text-align:center;margin:0 auto;}
+  .pb-status-badge{display:inline-block;padding:4px 14px;border-radius:4px;font-weight:900;font-size:12px;letter-spacing:1px;}
+  .pb-status-ok{background:#D1FAE5;color:#059669;border:1px solid #059669;}
+  .pb-status-wait{background:#FEF3C7;color:#D97706;border:1px solid #D97706;}
+  .pb-status-no{background:#FEE2E2;color:#DC2626;border:1px solid #DC2626;}
+  .pb-watermark{text-align:center;margin-top:28px;font-size:9px;color:#999;border-top:1px dashed #ddd;padding-top:10px;}
+  .pb-qr-placeholder{width:54px;height:54px;border:1px solid #ccc;display:flex;align-items:center;justify-content:center;font-size:8px;color:#999;text-align:center;margin:6px 0 0 auto;}
+  @media print{body{padding:0;}@page{size:A4;margin:20mm 18mm;}}
+</style>
+</head>
+<body>
+<div>
+  <div class="pb-gov-top">
+    <div class="pb-gov-left">
+      <b>Toshkent shahar Bolalar tashkiloti bo'limi</b><br>
+      <small style="opacity:0.7;">Sardorlarni muvofiqlashtirish platformasi</small>
+    </div>
+    <div class="pb-gov-right">
+      Hujjat raqami: <b>#${d.id}</b><br>
+      Sana: <b>${d.date}</b><br>
+      Chop etilgan: ${now}<br>
+      <div class="pb-qr-placeholder">QR<br>KOD</div>
+    </div>
+  </div>
+  <div class="pb-center-title">
+    <h1>Rasmiy tasdiqnoma blanki</h1>
+    <div class="pb-docnum">Toshkent shahar Bolalar Tashkiloti bo'limi · Sardorlarni muvofiqlashtirish elektron platformasi</div>
+  </div>
+  <table class="pb-table">
+    <tr><td>Mas'ul Sardor (F.I.Sh.):</td><td><b>${d.leader}</b></td></tr>
+    <tr><td>Hudud (Tuman):</td><td>${d.dist} tumani</td></tr>
+    <tr><td>Yo'nalish:</td><td>${d.dir}</td></tr>
+    <tr><td>Hujjat mavzusi:</td><td>${d.title}</td></tr>
+    <tr><td>Hujjat holati:</td><td><span class="pb-status-badge ${stClass[d.status]}">${st[d.status]}</span></td></tr>
+  </table>
+  <div class="pb-desc-box">
+    <div class="pb-desc-label">Izoh / qo'shimcha ma'lumot:</div>
+    Ushbu hujjat Toshkent shahar Bolalar Tashkiloti bo'limi elektron platformasi tomonidan shakllantirildi.
+    Hujjatning aslligi platforma identifikatsiya raqami orqali tasdiqlanadi. Hujjat raqami: <b>#${d.id}</b>.
+  </div>
+  <div class="pb-footer">
+    <div class="pb-sign-block">
+      <div class="pb-sign-line"></div>
+      <p>Tasdiqlovchi shaxs imzosi</p>
+      <p>F.I.Sh.: ______________________</p>
+      <p>Lavozimi: ____________________</p>
+    </div>
+    <div class="pb-stamp">MUHR<br>O'RNI</div>
+    <div class="pb-sign-block" style="text-align:right;">
+      <div class="pb-sign-line" style="margin-left:auto;"></div>
+      <p>Bo'lim rahbari imzosi</p>
+      <p>F.I.Sh.: ______________________</p>
+      <p>Sana: 202___-yil "____"-______</p>
+    </div>
+  </div>
+  <div class="pb-watermark">Ushbu hujjat avtomatik ravishda shakllantirilgan · digital.sardorlar.uz · ID: #${d.id}</div>
+</div>
+<script>window.onload=()=>{window.print();setTimeout(()=>window.close(),1000);}<\/script>
+</body>
+</html>`;
+        const w = window.open('', '_blank', 'width=900,height=700');
+        if (w) {
+            w.document.write(fullHTML);
+            w.document.close();
+            this.showToast("Blank PDF sifatida chop eting (Ctrl+P → PDF saqlash)!", "info");
+        } else {
+            // fallback: download as HTML
+            const blob = new Blob([fullHTML], {type:'text/html;charset=utf-8'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `Blank_${d.id}_${d.leader.replace(/\s+/g,'_')}.html`;
+            document.body.appendChild(a); a.click();
+            URL.revokeObjectURL(url); document.body.removeChild(a);
+            this.showToast("Blank yuklab olindi!", "success");
+        }
+        this.closeDownloadPreview();
+    },
+
+    /* ── DOWNLOAD UPLOADED DOCUMENT ── */
+    doDownloadUploadedFile() {
+        const id = this.currentDocId;
+        if (!id) return;
+        const d = this.docs.find(x => x.id===id);
+        if (!d || !d.fileData) { this.showToast("Yuklangan fayl topilmadi!", "error"); return; }
+        const a = document.createElement('a');
+        a.href = d.fileData;
+        a.download = d.fileName || `Hujjat_${d.id}`;
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a);
+        this.showToast(`"${d.fileName}" yuklab olindi!`, "success");
+        this.closeDownloadPreview();
+    },
+
+
+    // STATUS MODAL
+    openModal(id) {
+        const d = this.docs.find(x => x.id===id);
+        document.getElementById('modal-doc-id').value = d.id;
+        document.getElementById('modal-status-sel').value = d.status;
+        document.getElementById('status-modal').style.display = 'flex';
+    },
+    closeModal() { document.getElementById('status-modal').style.display = 'none'; },
+    saveStatus() {
+        const id = parseInt(document.getElementById('modal-doc-id').value);
+        const ns = document.getElementById('modal-status-sel').value;
+        const d = this.docs.find(x => x.id===id);
+        if (d) { d.status = ns; this.saveDB(); this.renderAll(); this.updateStats(); this.closeModal(); this.showToast("Holat yangilandi!", "success"); }
+    },
+
+    // DELETE DOC
+    async deleteDoc(id) {
+        if (confirm("Ushbu hujjatni o'chirib tashlamoqchimisiz? Bu amalni qaytarib bo'lmaydi!")) {
+            this.docs = this.docs.filter(d => d.id !== id);
+            await this.saveDB();
+            this.renderAll(); this.updateStats();
+            this.showToast("Hujjat o'chirildi!", "info");
+        }
+    },
+
+    // SUBMIT
+    submit() {
+        const name = document.getElementById('f-name').value;
+        const dir = document.getElementById('f-dir').value;
+        const dist = document.getElementById('f-dist').value;
+        const title = document.getElementById('f-title').value;
+        const fileEl = document.getElementById('f-file');
+        if (!name || !title || !dist) { this.showToast("Barcha maydonlarni to'ldiring!", "error"); return; }
+        const doSave = async (fileData, fileName, fileMime) => {
+            this.showToast("Saqlanmoqda...", "info");
+            const nd = {id: Math.floor(2500+Math.random()*9999), leader:name, dir:dir, dist:dist, title:title,
+                date:new Date().toISOString().split('T')[0], status:"wait",
+                fileData: fileData, fileName: fileName, fileMime: fileMime};
+            this.docs.unshift(nd);
+            await this.saveDB();
+            this.renderAll(); this.updateStats();
+            document.getElementById('f-name').value = '';
+            document.getElementById('f-title').value = '';
+            fileEl.value = '';
+            this.tab('archive');
+            this.showToast("Hujjat muvaffaqiyatli saqlandi!", "success");
+        };
+        if (fileEl.files && fileEl.files[0]) {
+            const file = fileEl.files[0];
+            const reader = new FileReader();
+            reader.onload = e => doSave(e.target.result, file.name, file.type);
+            reader.readAsDataURL(file);
+        } else {
+            doSave(null, null, null);
+        }
+    },
+
+    // MAHALLA
+    async addMahalla() {
+        const name = document.getElementById('mh-name').value;
+        const dist = document.getElementById('mh-dist').value;
+        const leader = document.getElementById('mh-leader').value;
+        if (!name||!dist||!leader) { this.showToast("Barcha maydonlarni to'ldiring!", "error"); return; }
+        this.mahallas.push({id:Date.now(), name, dist, leader});
+        await this.saveDB(); this.renderMahalla();
+        document.getElementById('mh-name').value = '';
+        document.getElementById('mh-dist').value = '';
+        document.getElementById('mh-leader').value = '';
+        this.showToast("Mahalla qo'shildi!", "success");
+    },
+    async deleteMahalla(id) {
+        if (confirm("Ushbu mahallani o'chirib tashlamoqchimisiz?")) {
+            this.mahallas = this.mahallas.filter(m => m.id!==id);
+            await this.saveDB(); this.renderMahalla();
+            this.showToast("Mahalla o'chirildi!", "info");
+        }
+    },
+    renderMahalla(filterTerm='') {
+        const body = document.querySelector('#mahalla-table tbody');
+        if (!body) return;
+        body.innerHTML = '';
+        let filtered = this.mahallas;
+        if (filterTerm) filtered = filtered.filter(m => m.name.toLowerCase().includes(filterTerm.toLowerCase()) || m.leader.toLowerCase().includes(filterTerm.toLowerCase()));
+        if (!filtered.length) { body.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-sub);">Mahalla topilmadi.</td></tr>`; return; }
+        filtered.forEach(m => {
+            body.innerHTML += `<tr>
+                <td><b>${m.name}</b></td>
+                <td>${m.dist}</td>
+                <td><i class="bi bi-person-fill" style="color:var(--primary);margin-right:4px;"></i>${m.leader}</td>
+                <td style="text-align:right;"><button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger);" onclick="app.deleteMahalla(${m.id})"><i class="bi bi-trash"></i></button></td>
+            </tr>`;
+        });
+    },
+
+    // EVENTS
+    async addEvent() {
+        const title = document.getElementById('ev-title').value;
+        const date  = document.getElementById('ev-date').value;
+        const dist  = document.getElementById('ev-dist').value;
+        const desc  = document.getElementById('ev-desc').value;
+        if (!title||!date||!dist) { this.showToast("Barcha maydonlarni to'ldiring!", "error"); return; }
+        this.events.push({id:Date.now(), title, date, dist, desc});
+        await this.saveDB(); this.renderEvents();
+        document.getElementById('ev-title').value = '';
+        document.getElementById('ev-date').value = '';
+        document.getElementById('ev-dist').value = '';
+        document.getElementById('ev-desc').value = '';
+        this.showToast("Tadbir qo'shildi!", "success");
+    },
+    async deleteEvent(id) {
+        if (confirm("Tadbirni o'chirib tashlamoqchimisiz?")) {
+            this.events = this.events.filter(e => e.id!==id);
+            await this.saveDB(); this.renderEvents();
+            this.showToast("Tadbir o'chirildi!", "info");
+        }
+    },
+    renderEvents() {
+        const list = document.getElementById('events-list');
+        list.innerHTML = '';
+        const sorted = [...this.events].sort((a,b) => new Date(a.date)-new Date(b.date));
+        if (!sorted.length) { list.innerHTML = '<div style="text-align:center;color:var(--text-sub);padding:20px;">Tadbir rejalashtirilmagan.</div>'; return; }
+        sorted.forEach(e => {
+            const dt = new Date(e.date).toLocaleString('uz-UZ', {year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
+            list.innerHTML += `<div class="event-card">
+                <div>
+                    <div style="font-weight:800;font-size:14px;color:var(--primary-dark);">${e.title}</div>
+                    <div style="font-size:11px;color:var(--text-sub);margin-top:5px;display:flex;gap:12px;flex-wrap:wrap;">
+                        <span><i class="bi bi-calendar-check"></i> ${dt}</span>
+                        <span><i class="bi bi-geo-alt"></i> ${e.dist}</span>
+                    </div>
+                    <div style="font-size:12px;margin-top:8px;color:var(--text-main);line-height:1.5;">${e.desc}</div>
+                </div>
+                <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger);margin-left:10px;flex-shrink:0;" onclick="app.deleteEvent(${e.id})"><i class="bi bi-trash"></i></button>
+            </div>`;
+        });
+    },
+
+    // LEADERS
+    _leaderPhotoData: null,
+
+    previewLeaderPhoto(input) {
+        if (!input.files || !input.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            this._leaderPhotoData = e.target.result;
+            const img = document.getElementById('sl-photo-img');
+            const icon = document.getElementById('sl-photo-icon');
+            img.src = e.target.result;
+            img.style.display = 'block';
+            icon.style.display = 'none';
+            document.getElementById('sl-photo-clear-btn').style.display = 'inline-flex';
+        };
+        reader.readAsDataURL(input.files[0]);
+    },
+
+    clearLeaderPhoto() {
+        this._leaderPhotoData = null;
+        document.getElementById('sl-photo-input').value = '';
+        document.getElementById('sl-photo-img').src = '';
+        document.getElementById('sl-photo-img').style.display = 'none';
+        document.getElementById('sl-photo-icon').style.display = '';
+        document.getElementById('sl-photo-clear-btn').style.display = 'none';
+    },
+
+    async addLeader() {
+        const familiya = document.getElementById('sl-familiya').value.trim();
+        const ism      = document.getElementById('sl-ism').value.trim();
+        const otaism   = document.getElementById('sl-otaism').value.trim();
+        const dob      = document.getElementById('sl-dob').value;
+        const school   = document.getElementById('sl-school').value.trim();
+        const address  = document.getElementById('sl-address').value.trim();
+        const dir      = document.getElementById('sl-dir').value;
+        const dist     = document.getElementById('sl-dist').value;
+        if (!familiya||!ism||!otaism||!dob||!school||!address||!dist) {
+            this.showToast("Barcha maydonlarni to'ldiring!", "error"); return;
+        }
+        this.leaders.push({
+            id: Date.now(), familiya, ism, otaism,
+            fullname: `${familiya} ${ism} ${otaism}`,
+            dob, school, address, dir, dist,
+            photo: this._leaderPhotoData || null,
+            added: new Date().toISOString().split('T')[0]
+        });
+        await this.saveDB(); this.renderLeaders();
+        ['sl-familiya','sl-ism','sl-otaism','sl-dob','sl-school','sl-address'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('sl-dir').selectedIndex = 0;
+        document.getElementById('sl-dist').selectedIndex = 0;
+        this.clearLeaderPhoto();
+        this.showToast("Sardor muvaffaqiyatli qo'shildi!", "success");
+    },
+    async deleteLeader(id) {
+        if (confirm("Ushbu Sardorni o'chirib tashlamoqchimisiz?")) {
+            this.leaders = this.leaders.filter(l => l.id !== id);
+            await this.saveDB(); this.renderLeaders();
+            this.showToast("Sardor o'chirildi!", "info");
+        }
+    },
+    renderLeaders(filterTerm='') {
+        const body = document.querySelector('#leaders-table tbody');
+        if (!body) return;
+        body.innerHTML = '';
+        let filtered = this.leaders;
+        if (filterTerm) {
+            const q = filterTerm.toLowerCase();
+            filtered = filtered.filter(l =>
+                l.fullname.toLowerCase().includes(q) ||
+                l.school.toLowerCase().includes(q) ||
+                l.dist.toLowerCase().includes(q)
+            );
+        }
+        if (!filtered.length) {
+            body.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-sub);">Sardor topilmadi.</td></tr>`;
+            return;
+        }
+        filtered.forEach(l => {
+            const photoHtml = l.photo
+                ? `<img src="${l.photo}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--primary-light);margin-right:8px;vertical-align:middle;">`
+                : `<span style="display:inline-flex;width:36px;height:36px;border-radius:50%;background:var(--primary-light);align-items:center;justify-content:center;margin-right:8px;vertical-align:middle;"><i class="bi bi-person-fill" style="color:var(--primary);font-size:18px;"></i></span>`;
+            body.innerHTML += `<tr>
+                <td style="white-space:nowrap;">${photoHtml}<span><b>${l.familiya} ${l.ism}</b><br><small style="color:var(--text-sub)">${l.otaism}</small></span></td>
+                <td>${l.dob}</td>
+                <td>${l.school}</td>
+                <td style="max-width:150px;font-size:12px;">${l.address}</td>
+                <td><span class="badge" style="background:var(--primary-light);color:var(--primary-dark)">${l.dir}</span></td>
+                <td>${l.dist}</td>
+                <td style="text-align:right;">
+                    <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger);" onclick="app.deleteLeader(${l.id})"><i class="bi bi-trash"></i></button>
+                </td>
+            </tr>`;
+        });
+    }
+};
+
+window.onload = () => app.init();
+
+// Close modals on overlay click
+document.getElementById('download-preview').addEventListener('click', function(e) {
+    if (e.target === this) app.closeDownloadPreview();
+});
+document.getElementById('status-modal').addEventListener('click', function(e) {
+    if (e.target === this) app.closeModal();
+});
+</script>
+</body>
+</html>
