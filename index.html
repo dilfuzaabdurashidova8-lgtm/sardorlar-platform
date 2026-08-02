@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>Toshkent Sardorlari · Rasmiy platforma</title>
+    <link rel="manifest" href="manifest.json"/>
+    <meta name="theme-color" content="#6750A4"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-title" content="Sardorlar"/>
+    <link rel="apple-touch-icon" href="icon-192.png"/>
+    <link rel="icon" type="image/png" href="icon-192.png"/>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+    <style>
+        :root {
+            --primary: #6750A4;
+            --primary-light: #EADDFF;
+            --primary-dark: #21005D;
+            --accent: #FFD22D;
+            --bg: #F6F5F8;
+            --card: #FFFFFF;
+            --text-main: #1C1B1F;
+            --text-sub: #49454F;
+            --border: #CAC4D0;
+            --success: #10B981;
+            --danger: #B3261E;
+            --warning: #F59E0B;
+            --shadow: 0 4px 20px rgba(0,0,0,0.08);
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text-main); overflow-x: hidden; }
+
+        /* ═══════════ SPLASH / LOADING ═══════════ */
+        #splash-screen {
+            position: fixed; inset: 0; background: radial-gradient(ellipse at 60% 40%, #4F378B 0%, #21005D 55%, #0D0028 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9999; transition: opacity 0.6s ease;
+        }
+        .splash-logo {
+            width: 130px; height: 130px; background: white; border-radius: 36px;
+            display: flex; align-items: center; justify-content: center; margin-bottom: 22px;
+            animation: pulse 2s infinite ease-in-out; box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+        }
+        .splash-logo img { width: 84px; height: auto; }
+        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+        .splash-text { color: white; font-weight: 800; font-size: 17px; text-align: center; line-height: 1.55; }
+        .splash-sub { color: rgba(255,255,255,0.65); font-size: 13px; margin-top: 8px; }
+        .splash-ver { color: rgba(255,255,255,0.4); font-size: 10px; margin-top: 20px; letter-spacing: 3px; text-transform: uppercase; }
+        .splash-loader { margin-top: 26px; width: 160px; height: 4px; background: rgba(255,255,255,0.15); border-radius: 99px; overflow: hidden; }
+        .splash-loader-bar { height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), #ff8f3d); border-radius: 99px; animation: loadbar 1.6s ease-in-out forwards; }
+        @keyframes loadbar { 0% { width: 0; } 60% { width: 70%; } 100% { width: 100%; } }
+
+        /* ═══════════ HEADER ═══════════ */
+        header {
+            position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(10px); border-bottom: 1px solid var(--border);
+        }
+        .header-in { max-width: 1200px; margin: 0 auto; padding: 12px 22px; display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+        .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+        .brand-img { width: 44px; height: 44px; border-radius: 12px; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; background: white; border: 1px solid var(--border); }
+        .brand-img img { width: 100%; height: 100%; object-fit: contain; }
+        .brand-name { font-weight: 800; font-size: 14px; line-height: 1.35; }
+        .brand-name small { display: block; font-weight: 600; font-size: 10px; color: var(--text-sub); letter-spacing: 1px; text-transform: uppercase; }
+        nav.menu { display: flex; gap: 6px; }
+        nav.menu a { text-decoration: none; color: var(--text-main); font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: 10px; transition: 0.2s; }
+        nav.menu a:hover { background: var(--primary-light); color: var(--primary-dark); }
+        .header-cta { display: flex; gap: 8px; align-items: center; }
+        .btn { padding: 10px 20px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; font-size: 13px; transition: 0.2s; text-decoration: none; }
+        .btn-primary { background: linear-gradient(135deg, #7965AF 0%, #6750A4 100%); color: white; box-shadow: 0 3px 10px rgba(103,80,164,0.3); }
+        .btn-primary:hover { background: linear-gradient(135deg, #6750A4 0%, #4F378B 100%); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(103,80,164,0.4); }
+        .btn-outline { background: white; border: 1.5px solid var(--border); color: var(--text-main); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); background: #f7f5fd; }
+        .btn-ghost { background: rgba(255,255,255,0.12); color: white; border: 1.5px solid rgba(255,255,255,0.35); }
+        .btn-ghost:hover { background: rgba(255,255,255,0.22); }
+        .burger { display: none; background: none; border: none; font-size: 26px; color: var(--text-main); cursor: pointer; }
+        #mobile-menu { display: none; flex-direction: column; gap: 4px; padding: 10px 22px 16px; background: white; border-bottom: 1px solid var(--border); }
+        #mobile-menu a { text-decoration: none; color: var(--text-main); font-weight: 600; font-size: 14px; padding: 11px 12px; border-radius: 10px; }
+        #mobile-menu a:hover { background: var(--primary-light); }
+
+        /* Language switcher */
+        .lang-switch { display: inline-flex; background: var(--primary-light); border-radius: 99px; padding: 3px; gap: 2px; }
+        .lang-switch button { border: none; background: transparent; color: var(--primary-dark); font-weight: 700; font-size: 11px; padding: 5px 12px; border-radius: 99px; cursor: pointer; transition: 0.2s; }
+        .lang-switch button.active { background: white; color: var(--primary-dark); box-shadow: 0 2px 8px rgba(103,80,164,0.25); }
+
+        @media (max-width: 860px) {
+            nav.menu, .header-cta .btn-outline { display: none; }
+            .burger { display: block; }
+            #mobile-menu.open { display: flex; }
+            .lang-switch { margin-left: auto; }
+        }
+
+        /* ═══════════ HERO ═══════════ */
+        .hero {
+            position: relative; color: white; text-align: center;
+            padding: 88px 22px 110px; overflow: hidden;
+            background: radial-gradient(ellipse at 50% 0%, #4F378B 0%, #21005D 55%, #0D0028 100%);
+        }
+        .hero::before {
+            content: ''; position: absolute; width: 700px; height: 700px;
+            background: radial-gradient(circle, rgba(103,80,164,0.35) 0%, transparent 70%);
+            top: -200px; left: 50%; transform: translateX(-50%); border-radius: 50%; pointer-events: none;
+        }
+        .hero .badge-line {
+            display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center;
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+            padding: 8px 18px; border-radius: 99px; font-size: 11px; font-weight: 700;
+            letter-spacing: 2px; text-transform: uppercase; color: #f0eaff; margin-bottom: 26px;
+        }
+        .hero h1 { font-size: clamp(30px, 5.4vw, 58px); font-weight: 900; line-height: 1.12; margin-bottom: 16px; }
+        .hero h1 span { color: var(--accent); }
+        .hero .sub { font-size: clamp(15px, 2vw, 19px); color: rgba(255,255,255,0.78); max-width: 640px; margin: 0 auto 34px; line-height: 1.6; }
+        .hero .cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .hero .hero-logo {
+            margin: 0 auto 26px; width: 96px; height: 96px; background: white; border-radius: 26px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 14px 50px rgba(0,0,0,0.35); animation: floaty 4s ease-in-out infinite;
+        }
+        .hero .hero-logo img { width: 66px; height: auto; }
+        @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .hero-stats {
+            margin: 60px auto 0; max-width: 900px;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+        }
+        .hstat { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); border-radius: var(--radius-md); padding: 22px 12px; }
+        .hstat b { display: block; font-size: 32px; font-weight: 900; color: var(--accent); }
+        .hstat span { font-size: 12px; color: rgba(255,255,255,0.75); letter-spacing: 1px; text-transform: uppercase; }
+        @media (max-width: 640px) { .hero-stats { grid-template-columns: 1fr; } }
+
+        /* ═══════════ SECTIONS ═══════════ */
+        .section { max-width: 1200px; margin: 0 auto; padding: 74px 22px; }
+        .sec-tag { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--primary); margin-bottom: 12px; }
+        .sec-title { font-size: clamp(24px, 3.6vw, 36px); font-weight: 900; color: var(--primary-dark); margin-bottom: 14px; line-height: 1.2; }
+        .sec-desc { font-size: 15px; color: var(--text-sub); max-width: 640px; line-height: 1.7; }
+
+        /* About */
+        .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 34px; align-items: center; margin-top: 40px; }
+        @media (max-width: 860px) { .about-grid { grid-template-columns: 1fr; } }
+        .about-visual {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: var(--radius-lg); padding: 44px 30px; color: white; text-align: center;
+            display: flex; flex-direction: column; align-items: center; gap: 16px; min-height: 320px; justify-content: center;
+        }
+        .about-visual .about-emblem { width: 92px; height: auto; margin-bottom: 4px; filter: drop-shadow(0 6px 18px rgba(0,0,0,0.3)); }
+        .about-visual .big-num { font-size: 54px; font-weight: 900; color: var(--accent); line-height: 1; }
+        .about-points { display: flex; flex-direction: column; gap: 18px; margin-top: 26px; }
+        .apoint { display: flex; gap: 14px; }
+        .apoint i { font-size: 22px; color: var(--primary); flex-shrink: 0; margin-top: 2px; }
+        .apoint b { font-size: 15px; color: var(--primary-dark); }
+        .apoint p { font-size: 13px; color: var(--text-sub); line-height: 1.6; margin-top: 3px; }
+
+        /* Features */
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; margin-top: 40px; }
+        .fcard { background: white; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px; transition: 0.25s; }
+        .fcard:hover { transform: translateY(-4px); border-color: var(--primary); box-shadow: 0 10px 34px rgba(103,80,164,0.12); }
+        .ficon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 14px; }
+        .fcard b { font-size: 15px; color: var(--primary-dark); }
+        .fcard p { font-size: 13px; color: var(--text-sub); line-height: 1.6; margin-top: 6px; }
+
+        /* Directions strip */
+        .dirs-strip { margin-top: 40px; display: flex; flex-wrap: wrap; gap: 10px; }
+        .dirchip { background: white; border: 1px solid var(--border); border-radius: 99px; padding: 9px 16px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+        .dirchip i { color: var(--primary); }
+        .dirchip:hover { border-color: var(--primary); background: var(--primary-light); }
+
+        /* CTA band */
+        .cta-band {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: var(--radius-lg); padding: 54px 30px; text-align: center; color: white; margin-top: 40px;
+            position: relative; overflow: hidden;
+        }
+        .cta-band h2 { font-size: clamp(22px, 3vw, 32px); font-weight: 900; margin-bottom: 10px; }
+        .cta-band p { color: rgba(255,255,255,0.8); margin-bottom: 24px; font-size: 15px; }
+
+        /* Contact */
+        .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; margin-top: 40px; }
+        .ccard { background: white; border-radius: var(--radius-md); box-shadow: var(--shadow); padding: 24px; display: flex; gap: 14px; align-items: flex-start; }
+        .ccard i { font-size: 24px; color: var(--primary); flex-shrink: 0; margin-top: 2px; }
+        .ccard b { font-size: 13px; color: var(--primary-dark); text-transform: uppercase; letter-spacing: 0.5px; }
+        .ccard a { color: var(--text-main); text-decoration: none; font-size: 14px; font-weight: 600; }
+        .ccard a:hover { color: var(--primary); }
+        .ccard p { font-size: 14px; color: var(--text-main); line-height: 1.6; margin-top: 4px; }
+
+        /* Map placeholder */
+        .map-note { margin-top: 26px; background: #E8E4F1; border: 1px dashed var(--primary); border-radius: var(--radius-md); padding: 22px; text-align: center; font-size: 13px; color: var(--primary-dark); font-weight: 600; }
+
+        /* Footer */
+        footer { background: var(--primary-dark); color: white; padding: 46px 22px 26px; margin-top: 40px; }
+        .footer-in { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 30px; }
+        .footer-in h4 { font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 14px; color: var(--accent); }
+        .footer-in a { display: block; color: rgba(255,255,255,0.8); text-decoration: none; font-size: 13px; padding: 4px 0; }
+        .footer-in a:hover { color: white; }
+        .footer-in p { color: rgba(255,255,255,0.75); font-size: 13px; line-height: 1.8; }
+        .footer-bottom { max-width: 1200px; margin: 30px auto 0; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.15); text-align: center; font-size: 12px; color: rgba(255,255,255,0.5); }
+
+        /* Reveal on scroll */
+        .reveal { opacity: 0; transform: translateY(26px); transition: opacity 0.6s ease, transform 0.6s ease; }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash-screen">
+    <div class="splash-logo"><img src="emblem.svg" alt="O'zbekiston Respublikasi gerbi"/></div>
+    <div class="splash-text" id="splash-title">O'zbekiston Bolalar tashkiloti<br>Toshkent shahar hududiy bo'limi</div>
+    <div class="splash-sub" id="splash-sub">Yoshlar markazi · Olmazor tumani · Toshkent shahri</div>
+    <div class="splash-loader"><div class="splash-loader-bar"></div></div>
+    <div class="splash-ver">SARDORLAR PLATFORMASI · v5.0</div>
+</div>
+
+<!-- HEADER -->
+<header>
+    <div class="header-in">
+        <a class="brand" href="#top">
+            <span class="brand-img"><img src="emblem.svg" alt="Gerbi"/></span>
+            <span class="brand-name">O'zbekiston Bolalar tashkiloti<small>Toshkent shahar hududiy bo'limi</small></span>
+        </a>
+        <nav class="menu">
+            <a href="#about" data-i18n="menu_about">Haqida</a>
+            <a href="#features" data-i18n="menu_features">Imkoniyatlar</a>
+            <a href="#directions" data-i18n="menu_directions">Yo'nalishlar</a>
+            <a href="#contact" data-i18n="menu_contact">Aloqa</a>
+        </nav>
+        <div class="header-cta">
+            <div class="lang-switch">
+                <button id="lang-uz" onclick="setLang('uz')">O'z</button>
+                <button id="lang-ru" onclick="setLang('ru')">Рус</button>
+            </div>
+            <a class="btn btn-primary" href="#platform" onclick="showEntry(event)"><i class="bi bi-box-arrow-in-right"></i> <span data-i18n="cta_enter">Platformaga kirish</span></a>
+            <button class="burger" onclick="toggleMenu()"><i class="bi bi-list"></i></button>
+        </div>
+    </div>
+    <div id="mobile-menu">
+        <a href="#about" onclick="toggleMenu()" data-i18n="menu_about">Haqida</a>
+        <a href="#features" onclick="toggleMenu()" data-i18n="menu_features">Imkoniyatlar</a>
+        <a href="#directions" onclick="toggleMenu()" data-i18n="menu_directions">Yo'nalishlar</a>
+        <a href="#contact" onclick="toggleMenu()" data-i18n="menu_contact">Aloqa</a>
+        <a href="#platform" onclick="toggleMenu(); showEntry(event)"><i class="bi bi-box-arrow-in-right"></i> <span data-i18n="cta_enter">Platformaga kirish</span></a>
+    </div>
+</header>
+
+<!-- HERO -->
+<section class="hero" id="top">
+    <div class="hero-logo"><img src="emblem.svg" alt="Gerbi"/></div>
+    <div class="badge-line"><i class="bi bi-geo-alt-fill"></i> <span data-i18n="hero_badge">TOSHKENT SHAHRI · 12 TUMAN KENGASH · 585 MAHALLA</span></div>
+    <h1 data-i18n-html="hero_title">O'zbekiston Bolalar Tashkiloti<br><span>Toshkent</span></h1>
+    <p class="sub" data-i18n="hero_sub">Toshkent yoshlari uchun ta'lim, rahbar va ijtimoiy platforma — Sardorlarni muvofiqlashtirish tizimi.</p>
+    <div class="cta-row">
+        <a class="btn btn-primary" href="#platform" onclick="showEntry(event)" style="padding:14px 28px;font-size:15px;"><i class="bi bi-person-plus"></i> <span data-i18n="hero_signup">Ro'yxatdan o'tish</span></a>
+        <a class="btn btn-ghost" href="#platform" onclick="showEntry(event)" style="padding:14px 28px;font-size:15px;"><i class="bi bi-box-arrow-in-right"></i> <span data-i18n="hero_login">Kirish</span></a>
+    </div>
+    <div class="hero-stats">
+        <div class="hstat"><b id="stat-dirs">9</b><span data-i18n="stat_dirs">Yo'nalish</span></div>
+        <div class="hstat"><b id="stat-kengash">12</b><span data-i18n="stat_kengash">Tuman kengashi</span></div>
+        <div class="hstat"><b id="stat-mahalla">585</b><span data-i18n="stat_mahalla">Mahalla</span></div>
+    </div>
+</section>
+
+<!-- ABOUT -->
+<section class="section" id="about">
+    <span class="sec-tag" data-i18n="about_tag">Biz haqimizda</span>
+    <h2 class="sec-title" data-i18n="about_title">Platforma haqida</h2>
+    <p class="sec-desc" data-i18n="about_desc">O'zbekiston Bolalar tashkiloti Toshkent shahar hududiy bo'limi tomonidan yaratilgan raqamli platforma — sardorlar faoliyatini muvofiqlashtirish, hujjat aylanishi va yoshlar tashabbuslarini qo'llab-quvvatlash uchun.</p>
+    <div class="about-grid">
+        <div class="about-visual">
+            <img class="about-emblem" src="emblem.svg" alt="Gerbi"/>
+            <span style="font-size:12px;letter-spacing:2px;text-transform:uppercase;opacity:.8;" data-i18n="about_visual_label">Rasmiy raqamli platforma</span>
+            <div class="big-num">12</div>
+            <span style="font-size:15px;" data-i18n="about_visual_text">ta tuman kengashi birlashgan</span>
+        </div>
+        <div>
+            <div class="about-points">
+                <div class="apoint"><i class="bi bi-shield-check"></i><div><b data-i18n="about_p1t">Rasmiy muvofiqlashtirish</b><p data-i18n="about_p1d">Barcha tuman va mahalla sardorlari yagona tizimda ishlaydi.</p></div></div>
+                <div class="apoint"><i class="bi bi-file-earmark-text"></i><div><b data-i18n="about_p2t">Raqamli hujjat aylanishi</b><p data-i18n="about_p2d">Hujjatlar, tasdiqnomalar va buyruqlar onlayn shakllantiriladi va QR bilan tasdiqlanadi.</p></div></div>
+                <div class="apoint"><i class="bi bi-trophy"></i><div><b data-i18n="about_p3t">Rag'batlantirish tizimi</b><p data-i18n="about_p3d">Coinlar, reyting va sovg'alar — faol sardorlar taqdirlanadi.</p></div></div>
+                <div class="apoint"><i class="bi bi-chat-dots"></i><div><b data-i18n="about_p4t">Yagona aloqa muhiti</b><p data-i18n="about_p4d">Suhbat, taqvim va mediateka — barcha tadbirlar bir joyda.</p></div></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section" id="features" style="background:white;max-width:none;">
+    <div style="max-width:1200px;margin:0 auto;padding:0 22px;">
+        <span class="sec-tag" data-i18n="features_tag">Imkoniyatlar</span>
+        <h2 class="sec-title" data-i18n="features_title">Platforma imkoniyatlari</h2>
+        <p class="sec-desc" data-i18n="features_desc">Sardorlik tizimining barcha jarayonlari — hujjatlardan tortib mukofotlargacha — bitta platformada.</p>
+        <div class="features-grid">
+            <div class="fcard reveal"><div class="ficon" style="background:#EADDFF;color:#6750A4;"><i class="bi bi-folder2-open"></i></div><b data-i18n="feat1t">Hujjatlar arxivi</b><p data-i18n="feat1d">Hujjatlarni qabul qilish, ko'rib chiqish, tasdiqlash va QR-blanklar shaklida chop etish.</p></div>
+            <div class="fcard reveal"><div class="ficon" style="background:#FDE68A;color:#B45309;"><i class="bi bi-file-earmark-text"></i></div><b data-i18n="feat2t">Buyruqlar (Buyruq)</b><p data-i18n="feat2d">Rasmiy buyruqlarni shakllantirish, Word formatda eksport va Kengashda ro'yxatga olish.</p></div>
+            <div class="fcard reveal"><div class="ficon" style="background:#FEE2E2;color:#DC2626;"><i class="bi bi-person-plus"></i></div><b data-i18n="feat3t">Sardorlar kabineti</b><p data-i18n="feat3d">Har bir sardorga shaxsiy login-parol va o'z hujjatlarini kuzatish kabineti.</p></div>
+            <div class="fcard reveal"><div class="ficon" style="background:#D1FAE5;color:#059669;"><i class="bi bi-coin"></i></div><b data-i18n="feat4t">Coinlar va mukofotlar</b><p data-i18n="feat4d">Coinlar, reyting jadvali, tashabbuslar va sovg'alar katalogi.</p></div>
+            <div class="fcard reveal"><div class="ficon" style="background:#DBEAFE;color:#1D4ED8;"><i class="bi bi-calendar-event"></i></div><b data-i18n="feat5t">Tadbirlar taqvimi</b><p data-i18n="feat5d">Yoshlar tadbirlarini rejalashtirish va tumanlar bo'yicha boshqarish.</p></div>
+            <div class="fcard reveal"><div class="ficon" style="background:#EDE9FE;color:#6D28D9;"><i class="bi bi-chat-dots"></i></div><b data-i18n="feat6t">Suhbat (chat)</b><p data-i18n="feat6d">Umumiy kanallar, yo'nalish guruhlari va shaxsiy xabarlar.</p></div>
+            <div class="fcard reveal"><div class="ficon" style="background:#FCE7F3;color:#BE185D;"><i class="bi bi-collection-play"></i></div><b data-i18n="feat7t">Mediateka</b><p data-i18n="feat7d">Qo'llanmalar, rasmlar va fayllarni saqlash va tarqatish.</p></div>
+            <div class="fcard reveal"><div class="ficon" style="background:#E0F2FE;color:#0369A1;"><i class="bi bi-bank2"></i></div><b data-i18n="feat8t">Tuman kengashlari</b><p data-i18n="feat8d">Buyruqlarni rasmiy ro'yxatga olish va tuman kengashlarida ratifikatsiya qilish.</p></div>
+        </div>
+    </div>
+</section>
+
+<!-- DIRECTIONS -->
+<section class="section" id="directions">
+    <span class="sec-tag" data-i18n="dirs_tag">Bo'limlar</span>
+    <h2 class="sec-title" data-i18n="dirs_title">9 ta yo'nalish</h2>
+    <p class="sec-desc" data-i18n="dirs_desc">Platforma bo'ylab ishlaydigan asosiy yo'nalishlar va bo'limlar.</p>
+    <div class="dirs-strip" id="dirs-strip"></div>
+</section>
+
+<!-- PLATFORM ENTRY -->
+<section class="section" id="platform">
+    <div class="cta-band">
+        <h2 data-i18n="cta_title">Hoziroq qo'shiling</h2>
+        <p data-i18n="cta_sub">Bepul ro'yxatdan o'ting va o'z mahallangiz tengdoshlari bilan tanishing.</p>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+            <button class="btn" style="background:#fff;color:var(--primary-dark);font-weight:800;" onclick="showEntry(event)"><i class="bi bi-box-arrow-in-right"></i> <span data-i18n="cta_login">Tizimga kirish</span></button>
+        </div>
+    </div>
+</section>
+
+<!-- CONTACT -->
+<section class="section" id="contact">
+    <span class="sec-tag" data-i18n="contact_tag">Aloqa</span>
+    <h2 class="sec-title" data-i18n="contact_title">Bog'lanish</h2>
+    <p class="sec-desc" data-i18n="contact_desc">Savollaringiz bo'lsa, biz bilan bog'laning.</p>
+    <div class="contact-grid">
+        <div class="ccard"><i class="bi bi-geo-alt-fill"></i><div><b data-i18n="contact_addr">Manzil</b><p>Yoshlar markazi,<br>Olmazor tumani, Toshkent shahri</p></div></div>
+        <div class="ccard"><i class="bi bi-telephone-fill"></i><div><b data-i18n="contact_phone">Telefon</b><a href="tel:+998906504244">+998 90 650 42 44</a></div></div>
+        <div class="ccard"><i class="bi bi-clock-fill"></i><div><b data-i18n="contact_hours">Ish vaqti</b><p>Dushanba — Shanba<br>09:00 — 18:00</p></div></div>
+    </div>
+    <div class="map-note"><i class="bi bi-map"></i> <span data-i18n="contact_note">Yoshlar markazi — Olmazor tumani, Toshkent shahri</span> · +998 90 650 42 44</div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+    <div class="footer-in">
+        <div>
+            <h4 data-i18n="footer_org">O'zbekiston Bolalar Tashkiloti</h4>
+            <p data-i18n="footer_org_desc">Toshkent shahar hududiy bo'limi<br>Sardorlarni muvofiqlashtirish platformasi</p>
+        </div>
+        <div>
+            <h4 data-i18n="footer_sections">Bo'limlar</h4>
+            <a href="#about" data-i18n="menu_about">Haqida</a>
+            <a href="#features" data-i18n="menu_features">Imkoniyatlar</a>
+            <a href="#directions" data-i18n="menu_directions">Yo'nalishlar</a>
+            <a href="#contact" data-i18n="menu_contact">Aloqa</a>
+        </div>
+        <div>
+            <h4 data-i18n="footer_contact">Aloqa</h4>
+            <p><i class="bi bi-geo-alt-fill"></i> <span data-i18n="footer_addr">Yoshlar markazi, Olmazor tumani, Toshkent shahri</span></p>
+            <p><i class="bi bi-telephone-fill"></i> <a href="tel:+998906504244" style="color:white;">+998 90 650 42 44</a></p>
+        </div>
+    </div>
+    <div class="footer-bottom" data-i18n="footer_bottom">© O'zbekiston Bolalar Tashkiloti · Toshkent shahar hududiy bo'limi · Rasmiy raqamli platforma</div>
+</footer>
+
+<!-- ENTRY MODAL -->
+<div id="entry-modal" style="display:none;position:fixed;inset:0;background:rgba(13,0,40,0.82);backdrop-filter:blur(8px);z-index:8000;align-items:center;justify-content:center;padding:16px;">
+    <div style="background:white;border-radius:var(--radius-lg);max-width:420px;width:100%;padding:30px;box-shadow:0 30px 80px rgba(0,0,0,0.45);text-align:center;">
+        <div style="display:flex;justify-content:center;margin-bottom:14px;"><img src="emblem.svg" style="width:64px;height:auto;" alt="Gerbi"/></div>
+        <h3 style="font-weight:800;color:var(--primary-dark);font-size:17px;margin-bottom:6px;" data-i18n="entry_title">Sardorlar platformasi</h3>
+        <p style="font-size:13px;color:var(--text-sub);margin-bottom:20px;" data-i18n="entry_sub">Platformaga kirish uchun admin yoki sardor hisobingizdan foydalaning.</p>
+        <div style="display:flex;gap:10px;">
+            <a class="btn btn-primary" style="flex:1;justify-content:center;" href="ToshkentSardorlari.html" onclick="closeEntry()"><span data-i18n="entry_go">Kirish</span></a>
+            <button class="btn btn-outline" style="flex:1;justify-content:center;" onclick="closeEntry()" data-i18n="entry_cancel">Bekor qilish</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ═══════════ OFFICIAL STATE EMBLEM (emblem.svg) ═══════════
+    // The official State Emblem of the Republic of Uzbekistan is rendered via emblem.svg
+    // (Wikimedia Commons public-domain artwork) placed next to this page.
+
+    // ── DIRECTIONS (translated) ──
+    const DIRECTIONS = {
+        uz: [
+            {name:"Bosh sardor", icon:"bi-star-fill"},
+            {name:"Jasorat", icon:"bi-shield-shaded"},
+            {name:"Ibrat farzandlari", icon:"bi-book-half"},
+            {name:"Ustoz AI", icon:"bi-robot"},
+            {name:"Yashil makon", icon:"bi-tree-fill"},
+            {name:"Mutolaa", icon:"bi-bookmark-heart"},
+            {name:"Qizlar akademiyasi", icon:"bi-mortarboard-fill"},
+            {name:"Iqtidor", icon:"bi-lightbulb-fill"},
+            {name:"Matbuot va media", icon:"bi-camera-reels"}
+        ],
+        ru: [
+            {name:"Главный сардор", icon:"bi-star-fill"},
+            {name:"Жасорат", icon:"bi-shield-shaded"},
+            {name:"Дети Ибрата", icon:"bi-book-half"},
+            {name:"Устоз AI", icon:"bi-robot"},
+            {name:"Зелёный край", icon:"bi-tree-fill"},
+            {name:"Чтение (Мутаола)", icon:"bi-bookmark-heart"},
+            {name:"Академия девушек", icon:"bi-mortarboard-fill"},
+            {name:"Иктидор", icon:"bi-lightbulb-fill"},
+            {name:"Пресса и медиа", icon:"bi-camera-reels"}
+        ]
+    };
+
+    // ── I18N DICTIONARY ──
+    const I18N = {
+        uz: {
+            menu_about: "Haqida",
+            menu_features: "Imkoniyatlar",
+            menu_directions: "Yo'nalishlar",
+            menu_contact: "Aloqa",
+            cta_enter: "Platformaga kirish",
+            hero_badge: "TOSHKENT SHAHRI · 12 TUMAN KENGASH · 585 MAHALLA",
+            hero_title: "O'zbekiston Bolalar Tashkiloti<br><span>Toshkent</span>",
+            hero_sub: "Toshkent yoshlari uchun ta'lim, rahbar va ijtimoiy platforma — Sardorlarni muvofiqlashtirish tizimi.",
+            hero_signup: "Ro'yxatdan o'tish",
+            hero_login: "Kirish",
+            stat_dirs: "Yo'nalish",
+            stat_kengash: "Tuman kengashi",
+            stat_mahalla: "Mahalla",
+            about_tag: "Biz haqimizda",
+            about_title: "Platforma haqida",
+            about_desc: "O'zbekiston Bolalar tashkiloti Toshkent shahar hududiy bo'limi tomonidan yaratilgan raqamli platforma — sardorlar faoliyatini muvofiqlashtirish, hujjat aylanishi va yoshlar tashabbuslarini qo'llab-quvvatlash uchun.",
+            about_visual_label: "Rasmiy raqamli platforma",
+            about_visual_text: "ta tuman kengashi birlashgan",
+            about_p1t: "Rasmiy muvofiqlashtirish",
+            about_p1d: "Barcha tuman va mahalla sardorlari yagona tizimda ishlaydi.",
+            about_p2t: "Raqamli hujjat aylanishi",
+            about_p2d: "Hujjatlar, tasdiqnomalar va buyruqlar onlayn shakllantiriladi va QR bilan tasdiqlanadi.",
+            about_p3t: "Rag'batlantirish tizimi",
+            about_p3d: "Coinlar, reyting va sovg'alar — faol sardorlar taqdirlanadi.",
+            about_p4t: "Yagona aloqa muhiti",
+            about_p4d: "Suhbat, taqvim va mediateka — barcha tadbirlar bir joyda.",
+            features_tag: "Imkoniyatlar",
+            features_title: "Platforma imkoniyatlari",
+            features_desc: "Sardorlik tizimining barcha jarayonlari — hujjatlardan tortib mukofotlargacha — bitta platformada.",
+            feat1t: "Hujjatlar arxivi",
+            feat1d: "Hujjatlarni qabul qilish, ko'rib chiqish, tasdiqlash va QR-blanklar shaklida chop etish.",
+            feat2t: "Buyruqlar (Buyruq)",
+            feat2d: "Rasmiy buyruqlarni shakllantirish, Word formatda eksport va Kengashda ro'yxatga olish.",
+            feat3t: "Sardorlar kabineti",
+            feat3d: "Har bir sardorga shaxsiy login-parol va o'z hujjatlarini kuzatish kabineti.",
+            feat4t: "Coinlar va mukofotlar",
+            feat4d: "Coinlar, reyting jadvali, tashabbuslar va sovg'alar katalogi.",
+            feat5t: "Tadbirlar taqvimi",
+            feat5d: "Yoshlar tadbirlarini rejalashtirish va tumanlar bo'yicha boshqarish.",
+            feat6t: "Suhbat (chat)",
+            feat6d: "Umumiy kanallar, yo'nalish guruhlari va shaxsiy xabarlar.",
+            feat7t: "Mediateka",
+            feat7d: "Qo'llanmalar, rasmlar va fayllarni saqlash va tarqatish.",
+            feat8t: "Tuman kengashlari",
+            feat8d: "Buyruqlarni rasmiy ro'yxatga olish va tuman kengashlarida ratifikatsiya qilish.",
+            dirs_tag: "Bo'limlar",
+            dirs_title: "9 ta yo'nalish",
+            dirs_desc: "Platforma bo'ylab ishlaydigan asosiy yo'nalishlar va bo'limlar.",
+            cta_title: "Hoziroq qo'shiling",
+            cta_sub: "Bepul ro'yxatdan o'ting va o'z mahallangiz tengdoshlari bilan tanishing.",
+            cta_login: "Tizimga kirish",
+            contact_tag: "Aloqa",
+            contact_title: "Bog'lanish",
+            contact_desc: "Savollaringiz bo'lsa, biz bilan bog'laning.",
+            contact_addr: "Manzil",
+            contact_phone: "Telefon",
+            contact_hours: "Ish vaqti",
+            contact_note: "Yoshlar markazi — Olmazor tumani, Toshkent shahri",
+            footer_org: "O'zbekiston Bolalar Tashkiloti",
+            footer_org_desc: "Toshkent shahar hududiy bo'limi<br>Sardorlarni muvofiqlashtirish platformasi",
+            footer_sections: "Bo'limlar",
+            footer_contact: "Aloqa",
+            footer_addr: "Yoshlar markazi, Olmazor tumani, Toshkent shahri",
+            footer_bottom: "© O'zbekiston Bolalar Tashkiloti · Toshkent shahar hududiy bo'limi · Rasmiy raqamli platforma",
+            entry_title: "Sardorlar platformasi",
+            entry_sub: "Platformaga kirish uchun admin yoki sardor hisobingizdan foydalaning.",
+            entry_go: "Kirish",
+            entry_cancel: "Bekor qilish",
+            entry_alert: "Sardorlar platformasini to'liq ishga tushirish uchun asosiy ilova faylini oching (ToshkentSardorlari.html). Bu sahifa rasmiy landing-za'stavka."
+        },
+        ru: {
+            menu_about: "О нас",
+            menu_features: "Возможности",
+            menu_directions: "Направления",
+            menu_contact: "Контакты",
+            cta_enter: "Войти на платформу",
+            hero_badge: "Г. ТАШКЕНТ · 12 РАЙОННЫХ КЕНГАШЕЙ · 585 МАХАЛЛЕЙ",
+            hero_title: "Детская организация Узбекистана<br><span>Ташкент</span>",
+            hero_sub: "Образовательная и социальная платформа для молодёжи Ташкента — система координации Сардоров.",
+            hero_signup: "Регистрация",
+            hero_login: "Войти",
+            stat_dirs: "Направление",
+            stat_kengash: "Районный кенгаш",
+            stat_mahalla: "Махалля",
+            about_tag: "О нас",
+            about_title: "О платформе",
+            about_desc: "Цифровая платформа, созданная Ташкентским городским отделением Детской организации Узбекистана, — для координации деятельности сардоров, документооборота и поддержки молодёжных инициатив.",
+            about_visual_label: "Официальная цифровая платформа",
+            about_visual_text: "районных кенгашей объединены",
+            about_p1t: "Официальная координация",
+            about_p1d: "Все районные и махаллинские сардоры работают в единой системе.",
+            about_p2t: "Цифровой документооборот",
+            about_p2d: "Документы, справки и приказы формируются онлайн и заверяются QR-кодом.",
+            about_p3t: "Система поощрений",
+            about_p3d: "Монеты, рейтинг и подарки — активные сардоры награждаются.",
+            about_p4t: "Единая среда общения",
+            about_p4d: "Чаты, календарь и медиатека — все мероприятия в одном месте.",
+            features_tag: "Возможности",
+            features_title: "Возможности платформы",
+            features_desc: "Все процессы системы сардоров — от документов до наград — на одной платформе.",
+            feat1t: "Архив документов",
+            feat1d: "Приём, рассмотрение, утверждение документов и печать в виде QR-бланков.",
+            feat2t: "Приказы (Buyruq)",
+            feat2d: "Формирование официальных приказов, экспорт в Word и регистрация в Кенгаше.",
+            feat3t: "Кабинет сардоров",
+            feat3d: "Личный логин-пароль для каждого сардора и кабинет отслеживания документов.",
+            feat4t: "Монеты и награды",
+            feat4d: "Монеты, таблица рейтинга, инициативы и каталог подарков.",
+            feat5t: "Календарь мероприятий",
+            feat5d: "Планирование молодёжных мероприятий и управление по районам.",
+            feat6t: "Чат",
+            feat6d: "Общие каналы, группы направлений и личные сообщения.",
+            feat7t: "Медиатека",
+            feat7d: "Хранение и распространение пособий, изображений и файлов.",
+            feat8t: "Районные кенгаши",
+            feat8d: "Официальная регистрация приказов и ратификация в районных кенгашах.",
+            dirs_tag: "Отделы",
+            dirs_title: "9 направлений",
+            dirs_desc: "Основные направления и отделы, работающие на платформе.",
+            cta_title: "Присоединяйтесь сейчас",
+            cta_sub: "Зарегистрируйтесь бесплатно и познакомьтесь со сверстниками своей махалли.",
+            cta_login: "Войти в систему",
+            contact_tag: "Контакты",
+            contact_title: "Свяжитесь с нами",
+            contact_desc: "Если у вас есть вопросы, свяжитесь с нами.",
+            contact_addr: "Адрес",
+            contact_phone: "Телефон",
+            contact_hours: "Режим работы",
+            contact_note: "Молодёжный центр — Алмазарский район, город Ташкент",
+            footer_org: "Детская организация Узбекистана",
+            footer_org_desc: "Ташкентское городское отделение<br>Платформа координации сардоров",
+            footer_sections: "Разделы",
+            footer_contact: "Контакты",
+            footer_addr: "Молодёжный центр, Алмазарский район, город Ташкент",
+            footer_bottom: "© Детская организация Узбекистана · Ташкентское городское отделение · Официальная цифровая платформа",
+            entry_title: "Платформа сардоров",
+            entry_sub: "Для входа на платформу используйте учётную запись администратора или сардора.",
+            entry_go: "Войти",
+            entry_cancel: "Отмена",
+            entry_alert: "Для полного запуска платформы сардоров откройте основной файл приложения (ToshkentSardorlari.html). Эта страница — официальная заставка-лендинг."
+        }
+    };
+
+    let currentLang = localStorage.getItem('tsl_lang') || 'uz';
+
+    function applyLang() {
+        const dict = I18N[currentLang];
+        document.documentElement.lang = (currentLang === 'ru') ? 'ru' : 'uz';
+        document.getElementById('splash-title').innerHTML = (currentLang === 'ru')
+            ? 'Детская организация Узбекистана<br>Ташкентское городское отделение'
+            : "O'zbekiston Bolalar tashkiloti<br>Toshkent shahar hududiy bo'limi";
+        document.getElementById('splash-sub').textContent = (currentLang === 'ru')
+            ? 'Молодёжный центр · Алмазарский район · г. Ташкент'
+            : 'Yoshlar markazi · Olmazor tumani · Toshkent shahri';
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (dict[key] !== undefined) el.textContent = dict[key];
+        });
+        document.querySelectorAll('[data-i18n-html]').forEach(el => {
+            const key = el.getAttribute('data-i18n-html');
+            if (dict[key] !== undefined) el.innerHTML = dict[key];
+        });
+        // Lang buttons
+        document.getElementById('lang-uz').classList.toggle('active', currentLang === 'uz');
+        document.getElementById('lang-ru').classList.toggle('active', currentLang === 'ru');
+        // Re-render directions
+        renderDirections();
+    }
+
+    function setLang(lang) {
+        currentLang = lang;
+        localStorage.setItem('tsl_lang', lang);
+        applyLang();
+    }
+
+    function renderDirections() {
+        const dirs = DIRECTIONS[currentLang] || DIRECTIONS.uz;
+        document.getElementById('dirs-strip').innerHTML = dirs.map(d =>
+            `<span class="dirchip"><i class="bi ${d.icon}"></i> ${d.name}</span>`
+        ).join('');
+    }
+
+    // ── INITIALISATION ──
+    applyLang();
+
+    // Splash hide after load
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            const s = document.getElementById('splash-screen');
+            s.style.opacity = '0';
+            setTimeout(() => s.style.display = 'none', 600);
+        }, 1300);
+    });
+
+    // Mobile menu
+    function toggleMenu() { document.getElementById('mobile-menu').classList.toggle('open'); }
+
+    // Entry modal
+    function showEntry(e) { e.preventDefault(); document.getElementById('entry-modal').style.display = 'flex'; }
+    function closeEntry() { document.getElementById('entry-modal').style.display = 'none'; }
+    document.getElementById('entry-modal').addEventListener('click', function(e) { if (e.target === this) closeEntry(); });
+
+    // Reveal on scroll
+    const io = new IntersectionObserver(entries => {
+        entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('visible'); io.unobserve(en.target); } });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+    // Animated counter for stats
+    function animateCount(el, target, suffix) {
+        const dur = 1200, start = performance.now();
+        function step(now) {
+            const p = Math.min((now - start) / dur, 1);
+            el.textContent = Math.floor(p * target) + (suffix || '');
+            if (p < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    }
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            animateCount(document.getElementById('stat-dirs'), 9);
+            animateCount(document.getElementById('stat-kengash'), 12);
+            animateCount(document.getElementById('stat-mahalla'), 585);
+        }, 900);
+    });
+</script>
+</body>
+</html>
